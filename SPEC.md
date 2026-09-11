@@ -8,7 +8,7 @@ Este archivo es la fuente de verdad del proyecto. Ante cualquier duda de alcance
 ## 1. Contexto
 
 Fiesta de cumpleaños de 50 años, aproximadamente 60 invitados, un salón, una noche.
-Los invitados sacan fotos con el celular durante la fiesta y las suben a una web. Las fotos van apareciendo en vivo en una pantalla proyectada en el salón. Al terminar la fiesta queda armado un "book": un timeline navegable de la noche, exportable a PDF para imprimir.
+Los invitados sacan fotos con el celular durante la fiesta y las suben a una web. Al terminar la fiesta queda armado un "book": un timeline navegable de la noche, exportable a PDF para imprimir.
 
 **Quién usa esto**: personas de entre 20 y 80 años, mayoría no técnicas, con el celular en una mano y una copa en la otra, en un salón con wifi malo y poca luz.
 
@@ -20,10 +20,13 @@ Ese último párrafo es el requisito más importante del proyecto. Cualquier dec
 
 ### Objetivos
 1. Que un invitado nuevo pueda darse de alta y subir su primera foto en menos de 40 segundos desde que escanea el QR, sin cuenta ni contraseña, y que las subidas siguientes con la sesión ya guardada tomen menos de 15 segundos.
-2. Que las fotos aparezcan en una pantalla proyectada casi en tiempo real.
-3. Que al día siguiente exista un book ordenado cronológicamente por momentos de la fiesta.
-4. Que ese book se pueda exportar a PDF imprimible.
-5. Que todo esto corra en planes gratuitos.
+2. Que al día siguiente exista un book ordenado cronológicamente por momentos de la fiesta, armado sin que nadie haya tenido que atender el celular durante la fiesta.
+3. Que ese book se pueda exportar a PDF imprimible.
+4. Que todo esto corra en planes gratuitos.
+
+Objetivo original que queda como capacidad disponible pero no en uso: que
+las fotos aparezcan en una pantalla proyectada casi en tiempo real (`/tv`,
+sección 7). Este salón no tiene proyector — ver sección 11.
 
 ### No-objetivos (explícitamente fuera de alcance)
 - Videos y audios. Comen storage y complican todo. No van.
@@ -158,7 +161,7 @@ create table hearts (
   3. Si ningún milestone no-prólogo arrancó todavía, se asigna el primer milestone **no-prólogo** por `sort_order` (nunca el milestone de prólogo, aunque tenga el `sort_order` más bajo).
 
   Implementar como trigger de Postgres o en el server action de inserción.
-- Para leer o agrupar fotos por momento, usar siempre `coalesce(milestone_override_id, milestone_id)`, nunca `milestone_id` solo. `milestone_override_id` lo setea el admin a mano (por foto individual o por rango horario) cuando el trigger asignó mal — por ejemplo, si se olvidó de marcar "Arrancar ahora" a tiempo.
+- Para leer o agrupar fotos por momento, usar siempre `coalesce(milestone_override_id, milestone_id)`, nunca `milestone_id` solo. `milestone_override_id` lo setea el admin a mano (por foto individual o por rango horario) cuando el trigger asignó mal — en este evento, directamente no se usa "Arrancar ahora" en vivo (sección 11): todas las fotos caen por defecto en el primer momento y el admin las reacomoda al día siguiente por rango horario.
 - `hearts` en `photos` es un contador desnormalizado que se actualiza por trigger desde la tabla `hearts`. No contar con `count(*)` en cada render. Dar un corazón es toggle: tocar de nuevo borra la fila en `hearts` y el trigger descuenta.
 - Borrar una foto propia es borrado lógico: el invitado dueño setea `status = 'deleted'`. Nunca se borra el archivo del storage ni la fila de la tabla.
 - `is_featured` es independiente de `status`: destacar una foto no le cambia el `status`, así que una foto destacada sigue siendo pública mientras su `status` sea `'visible'`.
@@ -217,7 +220,7 @@ Modo kiosko, fondo oscuro, sin ningún control visible.
 - Manejar reconexión de Realtime si se cae el wifi: reintentar en backoff y seguir mostrando el histórico mientras tanto.
 
 ### `/admin` — Panel
-- **Momentos**: lista de milestones con un botón "Arrancar ahora" que setea `started_at`. Esto es lo que arma el timeline. Incluye reasignación manual de `milestone_override_id`: por foto individual y por rango horario, para corregir fotos que el trigger clasificó mal.
+- **Momentos**: lista de milestones con un botón "Arrancar ahora" que setea `started_at` (disponible, pero no es el flujo recomendado para este evento — ver sección 11). Incluye reasignación manual de `milestone_override_id`: por foto individual y **por rango horario**, que es como se arma el timeline en este evento, al día siguiente.
 - **Moderación**: feed de las últimas fotos con botones ocultar / destacar. Ocultar setea `status = 'hidden'`; destacar togglea `is_featured` sin tocar `status`. Idealmente en tiempo real.
 - **Misiones**: CRUD.
 - **Mesas**: CRUD (`code` + `label` opcional). El `code` es lo que ya está impreso en el QR de esa mesa — cambiarlo después de imprimir rompe el QR, la UI tiene que avisar antes de guardar.
@@ -300,6 +303,12 @@ Ver sección 11.
 
 Esto no es opcional, es parte del proyecto.
 
+**Nota**: este salón no tiene proyector, así que `/tv` no se usa para este
+evento — el código queda construido y probado por si hace falta más
+adelante, pero no forma parte del plan del día. Tampoco se marcan momentos
+en vivo (ver "Al día siguiente" más abajo): el admin no toca el celular
+durante la fiesta.
+
 **Dos semanas antes**
 - Abrir el link de prólogo por WhatsApp para que suban fotos viejas.
 - Esto además mantiene el proyecto Supabase con tráfico y evita que se pause.
@@ -307,19 +316,16 @@ Esto no es opcional, es parte del proyecto.
 **Una semana antes: simulacro**
 - Reunir 5 personas, que suban 30 fotos en 10 minutos desde celulares distintos.
 - Probar con datos móviles y con wifi malo (activar throttling 3G en DevTools).
-- Dejar `/tv` corriendo 3 horas y verificar consumo de memoria.
 
 **Tres días antes**
 - Imprimir los QR: uno por mesa, tamaño A5, con instrucciones de tres palabras. Cada QR apunta a `/?mesa=<code>` con el `code` cargado en `party_tables` — generarlos recién después de cargar las mesas reales en `/admin`, no antes.
 - Chequear que el salón tenga wifi y pedir la clave. Ponerla en el cartel del QR.
-- Verificar la salida HDMI del proyector con la notebook que va a correr `/tv`.
 
 **El día**
-- Notebook enchufada, sin suspensión automática, `/tv` en pantalla completa (F11), modo avión de las notificaciones.
-- Un celular cargado para el admin.
-- Marcar los momentos a medida que pasan. Poner una alarma para no olvidarse.
+- Nada que atender en el celular del admin. Los invitados suben fotos solos; no hace falta marcar momentos en vivo ni mirar ninguna pantalla. Disfrutar la fiesta.
 
 **Al día siguiente**
+- En `/admin` → Momentos: usar "Fotos por hora" (Stats) como guía para ubicar más o menos cuándo pasó cada cosa, y asignar cada momento con "Reasignar por rango horario". Como no se tocó nada durante la fiesta, todas las fotos cayeron por defecto en el primer momento no-prólogo — esto las reacomoda de una.
 - Revisar y ocultar lo que haya que ocultar.
 - Generar el book y el PDF.
 - Mandar el link por WhatsApp con las stats de la noche.
@@ -344,11 +350,14 @@ El proyecto está terminado cuando:
 
 1. Un invitado nuevo escanea el QR de su mesa, se da de alta (sign-in anónimo + nombre, la mesa ya viene resuelta por el QR) y sube su primera foto en menos de 40 segundos, sin ayuda.
 2. Con la sesión ya guardada, subir una foto siguiente toma menos de 15 segundos.
-3. Esa foto aparece en la pantalla proyectada en menos de 30 segundos.
-4. Con la conexión cortada, la foto queda encolada y se sube sola al volver la señal.
-5. Una foto de 12 MB de iPhone termina pesando menos de 300 KB en el storage, bien orientada.
-6. `/tv` corre 6 horas sin recargarse y sin pasar de 500 MB de RAM.
-7. El admin marca un momento y las fotos siguientes caen en ese capítulo del timeline; las que quedaron mal asignadas se corrigen a mano con `milestone_override_id`, sin tocar la base directamente.
-8. El book de una mesa (`/book/mesa/<code>`) muestra únicamente las fotos de los invitados que entraron por el QR de esa mesa.
-9. `scripts/build-book.ts` genera el PDF con 700 fotos corriendo en una máquina local, sin depender de límites de Vercel.
-10. Todo el consumo dentro de Supabase y Vercel queda dentro de los límites gratuitos.
+3. Con la conexión cortada, la foto queda encolada y se sube sola al volver la señal.
+4. Una foto de 12 MB de iPhone termina pesando menos de 300 KB en el storage, bien orientada.
+5. Sin que el admin haya tocado nada durante la fiesta, al día siguiente asigna cada momento por rango horario (con "Fotos por hora" como guía) y las fotos quedan en el capítulo correcto, sin tocar la base directamente.
+6. El book de una mesa (`/book/mesa/<code>`) muestra únicamente las fotos de los invitados que entraron por el QR de esa mesa.
+7. `scripts/build-book.ts` genera el PDF con 700 fotos corriendo en una máquina local, sin depender de límites de Vercel.
+8. Todo el consumo dentro de Supabase y Vercel queda dentro de los límites gratuitos.
+
+Criterios que quedan como capacidad disponible pero no se evalúan para
+este evento puntual (sin proyector, ver sección 11): que una foto
+aparezca en la pantalla proyectada en menos de 30 segundos, y que `/tv`
+corra 6 horas sin recargarse ni pasar de 500 MB de RAM.
