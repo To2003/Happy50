@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { getSupabaseClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/database.types'
 
 export type Guest = Database['public']['Tables']['guests']['Row']
@@ -11,6 +11,7 @@ export type GroupTag = 'familia' | 'amigas' | 'trabajo' | 'vecinos' | 'otros'
  * Usar en "/" para decidir si redirigir directo a /subir.
  */
 export async function findExistingGuest(): Promise<Guest | null> {
+  const supabase = getSupabaseClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -32,6 +33,7 @@ export async function findExistingGuest(): Promise<Guest | null> {
  * Usar en /entrar al confirmar el formulario.
  */
 export async function createGuest(name: string, groupTag: GroupTag): Promise<Guest> {
+  const supabase = getSupabaseClient()
   const userId = await ensureAnonymousUserId()
 
   const { data, error } = await supabase
@@ -48,6 +50,7 @@ export async function createGuest(name: string, groupTag: GroupTag): Promise<Gue
 }
 
 async function ensureAnonymousUserId(): Promise<string> {
+  const supabase = getSupabaseClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
