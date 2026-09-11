@@ -9,11 +9,11 @@ const ITEMS = [
   { href: '/misiones', label: 'Misiones', emoji: '🎯' },
 ]
 
-export function BottomNav() {
+export function TopNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="sticky bottom-0 flex border-t border-neutral-800 bg-neutral-950">
+    <nav className="sticky top-0 z-10 flex border-b border-neutral-800 bg-neutral-950">
       {ITEMS.map((item) => (
         <Link
           key={item.href}

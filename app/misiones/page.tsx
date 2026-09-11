@@ -6,7 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
-import { BottomNav } from '@/components/BottomNav'
+import { TopNav } from '@/components/TopNav'
 
 interface Completion {
   missionId: string
@@ -83,6 +83,7 @@ export default function MisionesPage() {
 
   return (
     <>
+    <TopNav />
     <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-bold">Misiones</h1>
       <p className="text-neutral-400">Tocá una para ir a sacarle la foto.</p>
@@ -122,7 +123,6 @@ export default function MisionesPage() {
         })}
       </div>
     </main>
-    <BottomNav />
     </>
   )
 }
