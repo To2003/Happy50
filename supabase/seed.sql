@@ -20,3 +20,10 @@ insert into missions (title, emoji, sort_order) values
   ('Un abrazo', '🤗', 8),
   ('La torta', '🎂', 9),
   ('El grupo con el que viniste', '👯', 10);
+
+-- Mesas de prueba para desarrollo local. Las mesas reales se cargan desde
+-- /admin (Fase 4) antes de imprimir los QR — ver SPEC.md sección 11.
+insert into party_tables (code, label, sort_order) values
+  ('1', null, 1),
+  ('2', null, 2),
+  ('3', null, 3);

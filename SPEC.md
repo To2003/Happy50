@@ -75,7 +75,7 @@ Sin Redux, sin tRPC, sin ORM pesado. Server Components donde se pueda, cliente d
 
 | Rol | Cómo entra | Qué puede hacer |
 |---|---|---|
-| **Invitado** | QR → sign-in anónimo de Supabase Auth (sin email ni contraseña) + nombre y "¿de qué lado venís?". La fila en `guests` queda linkeada por `user_id` al uid anónimo. | Subir fotos, ver la galería, filtrar "Mis fotos", dar corazones (toggle), ver sus propias fotos, borrar sus propias fotos (borrado lógico, con confirmación). |
+| **Invitado** | QR de su mesa → sign-in anónimo de Supabase Auth (sin email ni contraseña) + nombre. La mesa la resuelve el QR, no se elige a mano. La fila en `guests` queda linkeada por `user_id` al uid anónimo y por `table_id` a la mesa. | Subir fotos, ver la galería, filtrar "Mis fotos", dar corazones (toggle), ver sus propias fotos, borrar sus propias fotos (borrado lógico, con confirmación). |
 | **Admin** (el hijo) | `/admin` con contraseña única en variable de entorno, validada en server (nunca comparada en el cliente). | Todo lo del invitado + moderar, ocultar, destacar, marcar hitos, gestionar misiones, reasignar momentos, exportar. |
 | **Pantalla** | `/tv?key=XXX` con clave en la URL. | Solo lectura, modo kiosko. |
 
@@ -86,12 +86,20 @@ No hay registro con email ni contraseña, pero sí hay **Supabase Auth**: el inv
 ## 6. Modelo de datos
 
 ```sql
+-- Mesas físicas del salón. Un QR por mesa, impreso, apunta a /?mesa=<code>.
+create table party_tables (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,   -- va en la URL del QR: corto y prolijo, ej. '1', '2', 'A'
+  label text,                  -- nombre para mostrar, opcional, ej. "Mesa de los Rodríguez"
+  sort_order int not null default 0
+);
+
 -- Invitados
 create table guests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,  -- uid de la sesión anónima de Supabase Auth
+  table_id uuid not null references party_tables(id),
   name text not null,
-  group_tag text,                    -- 'familia' | 'amigas' | 'trabajo' | 'vecinos' | 'otros'
   created_at timestamptz default now()
 );
 
@@ -154,6 +162,7 @@ create table hearts (
 - `hearts` en `photos` es un contador desnormalizado que se actualiza por trigger desde la tabla `hearts`. No contar con `count(*)` en cada render. Dar un corazón es toggle: tocar de nuevo borra la fila en `hearts` y el trigger descuenta.
 - Borrar una foto propia es borrado lógico: el invitado dueño setea `status = 'deleted'`. Nunca se borra el archivo del storage ni la fila de la tabla.
 - `is_featured` es independiente de `status`: destacar una foto no le cambia el `status`, así que una foto destacada sigue siendo pública mientras su `status` sea `'visible'`.
+- `party_tables`: lectura pública (hace falta para validar el `code` que llega por query param y para el selector de fallback en `/entrar`). Sin política de escritura para invitados — el admin las gestiona con la service role key, igual que `milestones` y `missions`.
 - RLS activado en todas las tablas. Lectura pública de `photos` con `status = 'visible'` (incluye a las destacadas, ya que `is_featured` no es un valor de `status`). Escritura de `photos` y `hearts` solo permitida cuando el `guest_id` corresponde al guest linkeado al `auth.uid()` de la sesión anónima activa — no alcanza con mandar cualquier `guest_id` válido. Insert en `guests` solo permitido si `user_id = auth.uid()`. Todo lo de admin pasa por server actions con service role key, nunca desde el cliente.
 
 ---
@@ -161,11 +170,11 @@ create table hearts (
 ## 7. Pantallas
 
 ### `/` — Bienvenida
-Foto de la cumpleañera, "50 años", y un solo botón grande: **Sumate**.
+Foto de la cumpleañera, "50 años", y un solo botón grande: **Sumate**. Si la URL trae `?mesa=<code>` (vino de un QR de mesa), el botón lo arrastra a `/entrar?mesa=<code>`.
 Si ya hay una sesión anónima activa con un `guests` asociado, redirige directo a `/subir`.
 
 ### `/entrar` — Alta de invitado
-Dos campos: nombre y "¿de qué lado venís?" (botones grandes, no un select). Un botón. Listo.
+El QR de cada mesa apunta a `/?mesa=<code>`, así que el código de mesa llega por query param y se arrastra hasta acá. Si `mesa` está presente y es un código válido: un solo campo, el nombre, y un botón — listo. Si no está presente (alguien entró por un link pelado, sin pasar por el QR de una mesa): se agrega antes un selector de mesa con botones grandes (no un select), como fallback — mismo patrón que tenía el selector de grupo viejo, pero ya no es un paso obligatorio para la mayoría.
 Tipografía grande, botones de mínimo 56px de alto. La gente tiene 50 años y está en penumbra.
 
 ### `/subir` — Pantalla principal del invitado
@@ -193,7 +202,7 @@ Misiones iniciales sugeridas (configurables desde admin):
 10. El grupo con el que viniste
 
 ### `/galeria` — Galería
-Grilla de miniaturas, scroll infinito, filtros por misión / momento / grupo / "Mis fotos". Tocar abre el visor con corazón y epígrafe. Usa siempre `thumb_path`, jamás la versión grande, hasta que se abra el visor.
+Grilla de miniaturas, scroll infinito, filtros por misión / momento / mesa / "Mis fotos". Tocar abre el visor con corazón y epígrafe. Usa siempre `thumb_path`, jamás la versión grande, hasta que se abra el visor.
 En el visor, si la foto es propia, aparece un botón de borrar con confirmación (borrado lógico, ver sección 6).
 
 ### `/tv` — Pantalla proyectada
@@ -211,11 +220,15 @@ Modo kiosko, fondo oscuro, sin ningún control visible.
 - **Momentos**: lista de milestones con un botón "Arrancar ahora" que setea `started_at`. Esto es lo que arma el timeline. Incluye reasignación manual de `milestone_override_id`: por foto individual y por rango horario, para corregir fotos que el trigger clasificó mal.
 - **Moderación**: feed de las últimas fotos con botones ocultar / destacar. Ocultar setea `status = 'hidden'`; destacar togglea `is_featured` sin tocar `status`. Idealmente en tiempo real.
 - **Misiones**: CRUD.
+- **Mesas**: CRUD (`code` + `label` opcional). El `code` es lo que ya está impreso en el QR de esa mesa — cambiarlo después de imprimir rompe el QR, la UI tiene que avisar antes de guardar.
 - **Stats**: total de fotos, fotos por hora, top uploaders, top votadas.
 - **Exportar**: descarga el manifiesto JSON (lista de fotos con `storage_path`, momento, epígrafe, autor, etc.) que consume `scripts/build-book.ts` (ver sección 9).
 
 ### `/book` — El book final
-Se habilita después de la fiesta. Timeline vertical: para cada momento, un encabezado con el nombre y el horario, y debajo las fotos de ese bloque. Navegación lateral por capítulos. Es la URL que se comparte por WhatsApp al día siguiente.
+Se habilita después de la fiesta. Timeline vertical: para cada momento, un encabezado con el nombre y el horario, y debajo las fotos de ese bloque. Navegación lateral por capítulos. Es la URL que se comparte por WhatsApp al día siguiente. Linkea a cada book de mesa (abajo).
+
+### `/book/mesa/[code]` — El book de la mesa
+Igual que `/book` pero filtrado a las fotos de los invitados de esa mesa (por `table_id`), cronológico dentro del filtro. Público, sin restricción — cualquiera con el link o el QR de la mesa lo puede ver, para compartirlo por el chat de esa mesa después de la fiesta.
 
 ---
 
@@ -270,13 +283,13 @@ El pipeline de imagen completo, la cola persistente, `/subir`, `/galeria` básic
 `/tv` con Realtime. Probarla proyectada de verdad, 2 horas seguidas, con el celular subiendo fotos.
 
 **Fase 4 — Admin y momentos (semana 5)**
-Panel, moderación, milestones, asignación automática al timeline, reasignación manual (`milestone_override_id`) individual y por rango horario.
+Panel, moderación, milestones, asignación automática al timeline, reasignación manual (`milestone_override_id`) individual y por rango horario, gestión de mesas (CRUD).
 
 **Fase 5 — Misiones (semana 6)**
 Photo bingo completo.
 
 **Fase 6 — Book y PDF (semana 7)**
-`/book`, el manifiesto JSON desde `/admin`, y `scripts/build-book.ts` (PDF + ZIP, corre local, fuera de Vercel).
+`/book`, `/book/mesa/[code]`, el manifiesto JSON desde `/admin`, y `scripts/build-book.ts` (PDF + ZIP, corre local, fuera de Vercel).
 
 **Fase 7 — Prueba de fuego y pulido (semana 8)**
 Ver sección 11.
@@ -297,7 +310,7 @@ Esto no es opcional, es parte del proyecto.
 - Dejar `/tv` corriendo 3 horas y verificar consumo de memoria.
 
 **Tres días antes**
-- Imprimir los QR: uno por mesa, tamaño A5, con instrucciones de tres palabras.
+- Imprimir los QR: uno por mesa, tamaño A5, con instrucciones de tres palabras. Cada QR apunta a `/?mesa=<code>` con el `code` cargado en `party_tables` — generarlos recién después de cargar las mesas reales en `/admin`, no antes.
 - Chequear que el salón tenga wifi y pedir la clave. Ponerla en el cartel del QR.
 - Verificar la salida HDMI del proyector con la notebook que va a correr `/tv`.
 
@@ -329,12 +342,13 @@ Nada de dashboard genérico. Es una fiesta.
 
 El proyecto está terminado cuando:
 
-1. Un invitado nuevo escanea el QR, se da de alta (sign-in anónimo + nombre y grupo) y sube su primera foto en menos de 40 segundos, sin ayuda.
+1. Un invitado nuevo escanea el QR de su mesa, se da de alta (sign-in anónimo + nombre, la mesa ya viene resuelta por el QR) y sube su primera foto en menos de 40 segundos, sin ayuda.
 2. Con la sesión ya guardada, subir una foto siguiente toma menos de 15 segundos.
 3. Esa foto aparece en la pantalla proyectada en menos de 30 segundos.
 4. Con la conexión cortada, la foto queda encolada y se sube sola al volver la señal.
 5. Una foto de 12 MB de iPhone termina pesando menos de 300 KB en el storage, bien orientada.
 6. `/tv` corre 6 horas sin recargarse y sin pasar de 500 MB de RAM.
 7. El admin marca un momento y las fotos siguientes caen en ese capítulo del timeline; las que quedaron mal asignadas se corrigen a mano con `milestone_override_id`, sin tocar la base directamente.
-8. `scripts/build-book.ts` genera el PDF con 700 fotos corriendo en una máquina local, sin depender de límites de Vercel.
-9. Todo el consumo dentro de Supabase y Vercel queda dentro de los límites gratuitos.
+8. El book de una mesa (`/book/mesa/<code>`) muestra únicamente las fotos de los invitados que entraron por el QR de esa mesa.
+9. `scripts/build-book.ts` genera el PDF con 700 fotos corriendo en una máquina local, sin depender de límites de Vercel.
+10. Todo el consumo dentro de Supabase y Vercel queda dentro de los límites gratuitos.

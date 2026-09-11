@@ -1,40 +1,76 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { createGuest, type GroupTag } from '@/lib/guest'
+import { Suspense, useEffect, useState, type FormEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
 
-const GROUPS: { value: GroupTag; label: string }[] = [
-  { value: 'familia', label: 'Familia' },
-  { value: 'amigas', label: 'Amigas/os' },
-  { value: 'trabajo', label: 'Trabajo' },
-  { value: 'vecinos', label: 'Vecinos' },
-  { value: 'otros', label: 'Otros' },
-]
-
-export default function EntrarPage() {
+function EntrarForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const mesaCode = searchParams.get('mesa')
+
+  const [resolving, setResolving] = useState(true)
+  const [tableFromQr, setTableFromQr] = useState<PartyTable | null>(null)
+  const [tables, setTables] = useState<PartyTable[]>([])
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [group, setGroup] = useState<GroupTag | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canSubmit = name.trim().length > 0 && group !== null && !loading
+  useEffect(() => {
+    let active = true
+
+    async function resolve() {
+      if (mesaCode) {
+        const table = await findTableByCode(mesaCode)
+        if (!active) return
+        if (table) {
+          setTableFromQr(table)
+          setSelectedTableId(table.id)
+          setResolving(false)
+          return
+        }
+      }
+
+      // Sin mesa por QR, o el código no existe: mostramos el selector manual.
+      try {
+        const allTables = await listTables()
+        if (!active) return
+        setTables(allTables)
+      } catch {
+        // Si falla la lista, dejamos que intente enviar igual — ahí se ve el error real.
+      } finally {
+        if (active) setResolving(false)
+      }
+    }
+
+    resolve()
+
+    return () => {
+      active = false
+    }
+  }, [mesaCode])
+
+  const canSubmit = name.trim().length > 0 && selectedTableId !== null && !loading
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canSubmit || !group) return
+    if (!canSubmit || !selectedTableId) return
 
     setLoading(true)
     setError(null)
 
     try {
-      await createGuest(name.trim(), group)
+      await createGuest(name.trim(), selectedTableId)
       router.push('/subir')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Algo salió mal, probá de nuevo.')
       setLoading(false)
     }
+  }
+
+  if (resolving) {
+    return null
   }
 
   return (
@@ -51,25 +87,32 @@ export default function EntrarPage() {
           className="h-14 rounded-lg bg-neutral-900 px-4 text-lg outline-none ring-pink-600 focus:ring-2"
         />
 
-        <div className="flex flex-col gap-3">
-          <p className="text-lg">¿De qué lado venís?</p>
-          <div className="grid grid-cols-2 gap-3">
-            {GROUPS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setGroup(option.value)}
-                className={`h-14 rounded-lg text-lg font-medium transition-colors ${
-                  group === option.value
-                    ? 'bg-pink-600'
-                    : 'bg-neutral-900 active:bg-neutral-800'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+        {!tableFromQr && (
+          <div className="flex flex-col gap-3">
+            <p className="text-lg">¿En qué mesa estás?</p>
+            {mesaCode && (
+              <p className="text-sm text-neutral-400">
+                No encontramos esa mesa, elegí la tuya de la lista.
+              </p>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {tables.map((table) => (
+                <button
+                  key={table.id}
+                  type="button"
+                  onClick={() => setSelectedTableId(table.id)}
+                  className={`h-14 rounded-lg text-lg font-medium transition-colors ${
+                    selectedTableId === table.id
+                      ? 'bg-pink-600'
+                      : 'bg-neutral-900 active:bg-neutral-800'
+                  }`}
+                >
+                  {table.label ?? table.code}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {error && <p className="text-red-400">{error}</p>}
 
@@ -82,5 +125,13 @@ export default function EntrarPage() {
         </button>
       </form>
     </main>
+  )
+}
+
+export default function EntrarPage() {
+  return (
+    <Suspense fallback={null}>
+      <EntrarForm />
+    </Suspense>
   )
 }

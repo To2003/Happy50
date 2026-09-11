@@ -1,4 +1,4 @@
-// Tipos manuales que reflejan supabase/migrations/0001_init.sql.
+// Tipos manuales que reflejan supabase/migrations/0001_init.sql y 0002_party_tables.sql.
 // Cuando exista un proyecto Supabase real, regenerar con:
 //   supabase gen types typescript --project-id <id> > lib/database.types.ts
 // y revisar que este archivo no haya quedado desincronizado.
@@ -6,26 +6,47 @@
 export type Database = {
   public: {
     Tables: {
+      party_tables: {
+        Row: {
+          id: string
+          code: string
+          label: string | null
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          code: string
+          label?: string | null
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          code?: string
+          label?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
       guests: {
         Row: {
           id: string
           user_id: string
+          table_id: string
           name: string
-          group_tag: string | null
           created_at: string
         }
         Insert: {
           id?: string
           user_id: string
+          table_id: string
           name: string
-          group_tag?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           user_id?: string
+          table_id?: string
           name?: string
-          group_tag?: string | null
           created_at?: string
         }
         Relationships: []
