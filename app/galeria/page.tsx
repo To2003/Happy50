@@ -9,7 +9,7 @@ import { deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 
-type Photo = Database['public']['Tables']['photos']['Row']
+type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
 
 const PAGE_SIZE = 30
@@ -205,19 +205,17 @@ export default function GaleriaPage() {
         guestIdsForTable = (guestsInTable ?? []).map((row) => row.id)
       }
 
+      // La vista ya filtra status = 'visible' y expone effective_milestone_id
+      // = coalesce(milestone_override_id, milestone_id) — ver SPEC.md sección 6
+      // y la migración 0006.
       let query = supabase
-        .from('photos')
+        .from('photos_with_effective_milestone')
         .select('*')
-        .eq('status', 'visible')
         .order('taken_at', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1)
 
       if (filters.missionId) query = query.eq('mission_id', filters.missionId)
-      // Filtramos por milestone_id directo: milestone_override_id siempre es
-      // null hasta que exista la reasignación manual en /admin (Fase 4). El
-      // día que eso exista, esta query tiene que pasar a filtrar por
-      // coalesce(milestone_override_id, milestone_id) — ver SPEC.md sección 6.
-      if (filters.milestoneId) query = query.eq('milestone_id', filters.milestoneId)
+      if (filters.milestoneId) query = query.eq('effective_milestone_id', filters.milestoneId)
       if (filters.onlyMine && guest) query = query.eq('guest_id', guest.id)
       if (guestIdsForTable) query = query.in('guest_id', guestIdsForTable)
 

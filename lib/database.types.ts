@@ -178,7 +178,29 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: Record<string, never>
+    Views: {
+      photos_with_effective_milestone: {
+        Row: {
+          id: string
+          guest_id: string | null
+          mission_id: string | null
+          milestone_id: string | null
+          milestone_override_id: string | null
+          storage_path: string
+          thumb_path: string
+          width: number | null
+          height: number | null
+          caption: string | null
+          taken_at: string
+          created_at: string
+          status: string
+          is_featured: boolean
+          hearts: number
+          effective_milestone_id: string | null
+        }
+        Relationships: []
+      }
+    }
     Functions: Record<string, never>
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
