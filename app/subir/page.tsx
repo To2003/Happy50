@@ -9,6 +9,7 @@ import { addItem, hydrateQueue, updateItem, type QueueItem } from '@/lib/uploadQ
 import { startUploadProcessor } from '@/lib/uploadProcessor'
 import { useUploadQueue } from '@/lib/useUploadQueue'
 import { usePhotoCount } from '@/lib/usePhotoCount'
+import { BottomNav } from '@/components/BottomNav'
 
 interface StagedFile {
   id: string
@@ -203,6 +204,7 @@ function SubirScreen() {
   const hasStaged = staged.length > 0
 
   return (
+    <>
     <main className="flex min-h-screen flex-col gap-6 px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Subí tus fotos</h1>
@@ -322,6 +324,8 @@ function SubirScreen() {
         </ul>
       )}
     </main>
+    <BottomNav />
+    </>
   )
 }
 

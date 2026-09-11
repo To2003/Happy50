@@ -8,6 +8,7 @@ import { listActiveMissions, type Mission } from '@/lib/missions'
 import { deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
+import { BottomNav } from '@/components/BottomNav'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -258,6 +259,7 @@ export default function GaleriaPage() {
   }
 
   return (
+    <>
     <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
       <h1 className="text-2xl font-bold">Galería</h1>
 
@@ -322,5 +324,7 @@ export default function GaleriaPage() {
         />
       )}
     </main>
+    <BottomNav />
+    </>
   )
 }
