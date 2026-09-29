@@ -3,5 +3,33 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+}
+
+/* El gesto de marca del rediseño: un borde festoneado, como el canto de
+   una banderita de cumpleaños. Se usa una sola vez por pantalla, entre el
+   hero y el resto del contenido — nunca como decoración suelta. */
+.scallop-edge {
+  height: 20px;
+  background-color: theme('colors.rose');
+  -webkit-mask-image: radial-gradient(circle at 10px 0, transparent 9px, black 10px);
+  mask-image: radial-gradient(circle at 10px 0, transparent 9px, black 10px);
+  -webkit-mask-size: 20px 20px;
+  mask-size: 20px 20px;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: top;
+  mask-position: top;
+}
+
+/* Confetti: un solo estallido al confirmar una subida, no algo ambiente. */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0;
+  }
 }
