@@ -1,11 +1,13 @@
 name: Keep Supabase awake
 
 # Supabase Free pausa el proyecto después de 7 días sin tráfico
-# (SPEC.md sección 3). Esto le pega al health-check una vez por semana
-# durante todo el desarrollo, para que nunca se pause por accidente.
+# (SPEC.md sección 3). Probado en la práctica: pegarle una vez por semana
+# no alcanzó — el proyecto se pausó igual antes de la tercera corrida
+# semanal (quedaba justo en el límite de los 7 días). Pasado a diario
+# para tener margen de sobra.
 on:
   schedule:
-    - cron: '0 12 * * 1' # todos los lunes a las 12:00 UTC
+    - cron: '0 12 * * *' # todos los días a las 12:00 UTC
   workflow_dispatch: {}
 
 jobs:
