@@ -12,6 +12,13 @@ const config: Config = {
         gold: '#C89B3C',
         ink: '#4A2530',
         danger: '#9B2C2C',
+        // Pasteles de las tarjetas de misión — separados en matiz a
+        // propósito (rosa / dorado-amarillo / malva / durazno) para que
+        // se lean como variados, no como dos tonos casi iguales alternando.
+        'card-rose': '#F5D5DA',
+        'card-gold': '#F3E2A8',
+        'card-mauve': '#E6CCE0',
+        'card-peach': '#F6D7B8',
       },
       fontFamily: {
         display: ['var(--font-display)'],

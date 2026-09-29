@@ -13,6 +13,8 @@ interface Completion {
   thumbPath: string
 }
 
+const PASTELS = ['bg-card-rose', 'bg-card-gold', 'bg-card-mauve', 'bg-card-peach']
+
 export default function MisionesPage() {
   const router = useRouter()
   const [checkingGuest, setCheckingGuest] = useState(true)
@@ -68,61 +70,84 @@ export default function MisionesPage() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-red-400">{error}</p>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="h-14 rounded-lg bg-pink-600 px-6 text-lg font-bold"
-        >
-          Reintentar
-        </button>
-      </main>
+      <>
+        <TopNav />
+        <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="text-base text-danger">{error}</p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="h-12 rounded-full bg-fuchsia px-6 text-base font-bold text-white"
+          >
+            Reintentar
+          </button>
+        </main>
+      </>
     )
   }
 
+  const doneCount = completions.size
+  const totalCount = missions.length
+  const progressPercent = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100)
+
   return (
     <>
-    <TopNav />
-    <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
-      <h1 className="text-2xl font-bold">Misiones</h1>
-      <p className="text-neutral-400">Tocá una para ir a sacarle la foto.</p>
+      <TopNav />
+      <main className="flex min-h-screen flex-col gap-6 px-6 py-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h1 className="font-display text-3xl text-ink">Misiones</h1>
+            <span className="text-base font-bold text-ink">
+              {doneCount}/{totalCount}
+            </span>
+          </div>
+          <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
+          <div className="h-3 w-full overflow-hidden rounded-full bg-rose/30">
+            <div
+              className="h-full rounded-full bg-gold transition-all"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {missions.map((mission) => {
-          const completion = completions.get(mission.id)
-          const isDone = !!completion
+        <div className="grid grid-cols-2 gap-3">
+          {missions.map((mission, index) => {
+            const completion = completions.get(mission.id)
+            const isDone = !!completion
+            const pastel = PASTELS[index % PASTELS.length]
 
-          return (
-            <a
-              key={mission.id}
-              href={`/subir?mission=${mission.id}`}
-              className="relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-lg bg-neutral-900 p-3 text-center"
-            >
-              {isDone && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={storage.getPublicUrl(completion.thumbPath)}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover opacity-40"
-                />
-              )}
-              <span className="relative text-3xl">{mission.emoji}</span>
-              <span
-                className={`relative text-sm font-medium ${isDone ? 'line-through decoration-2 text-neutral-300' : ''}`}
+            return (
+              <a
+                key={mission.id}
+                href={`/subir?mission=${mission.id}`}
+                className={`relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-sm ${pastel}`}
               >
-                {mission.title}
-              </span>
-              {isDone && (
-                <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-pink-600 text-sm">
-                  ✓
+                {isDone && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={storage.getPublicUrl(completion.thumbPath)}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-30"
+                  />
+                )}
+                <span className="relative text-3xl" aria-hidden>
+                  {mission.emoji}
                 </span>
-              )}
-            </a>
-          )
-        })}
-      </div>
-    </main>
+                <span
+                  className={`relative text-base font-bold text-ink ${isDone ? 'line-through decoration-2' : ''}`}
+                >
+                  {mission.title}
+                </span>
+                {isDone && (
+                  <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-fuchsia text-base text-white">
+                    ✓
+                  </span>
+                )}
+              </a>
+            )
+          })}
+        </div>
+      </main>
     </>
   )
 }
