@@ -49,7 +49,7 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
+    <li className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-soft">
       {item.thumbBlob ? (
         <QueueThumb blob={item.thumbBlob} />
       ) : (

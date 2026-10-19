@@ -120,7 +120,7 @@ export default function MisionesPage() {
               <a
                 key={mission.id}
                 href={`/subir?mission=${mission.id}`}
-                className={`relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-sm ${pastel}`}
+                className={`relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
               >
                 {isDone && (
                   // eslint-disable-next-line @next/next/no-img-element

@@ -4,6 +4,33 @@
 
 :root {
   color-scheme: light;
+  accent-color: theme('colors.fuchsia');
+  caret-color: theme('colors.fuchsia');
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background-color: theme('colors.rose');
+  color: theme('colors.ink');
+}
+
+/* Foco visible solo con teclado; el tap no deja anillo. */
+:focus-visible {
+  outline: 3px solid theme('colors.fuchsia');
+  outline-offset: 2px;
+}
+
+/* Corte global: si el sistema pide menos movimiento, nada se anima
+   (incluye el confetti y cualquier transición de las fases siguientes). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* El gesto de marca del rediseño: un borde festoneado, como el canto de
