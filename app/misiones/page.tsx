@@ -93,7 +93,7 @@ export default function MisionesPage() {
   return (
     <>
       <TopNav />
-      <main className="flex min-h-screen flex-col gap-6 px-6 py-8">
+      <main className="flex min-h-screen animate-page flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <h1 className="font-display text-3xl text-ink">Misiones</h1>
@@ -104,8 +104,8 @@ export default function MisionesPage() {
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
           <div className="h-3 w-full overflow-hidden rounded-full bg-rose/30">
             <div
-              className="h-full rounded-full bg-gold transition-all"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full origin-left rounded-full bg-gold transition-transform duration-400 ease-out"
+              style={{ transform: `scaleX(${progressPercent / 100})` }}
             />
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function MisionesPage() {
               <a
                 key={mission.id}
                 href={`/subir?mission=${mission.id}`}
-                className={`relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
+                className={`press relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
               >
                 {isDone && (
                   // eslint-disable-next-line @next/next/no-img-element

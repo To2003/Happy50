@@ -41,7 +41,7 @@ function QueueThumb({ blob }: { blob: Blob }) {
     return () => URL.revokeObjectURL(objectUrl)
   }, [blob])
 
-  if (!url) return <div className="h-16 w-16 shrink-0 rounded-2xl bg-rose/30" />
+  if (!url) return <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
 
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
@@ -49,15 +49,16 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-soft">
+    <li className="flex animate-enter items-center gap-3 rounded-2xl bg-surface p-3 shadow-soft">
       {item.thumbBlob ? (
         <QueueThumb blob={item.thumbBlob} />
       ) : (
-        <div className="h-16 w-16 shrink-0 rounded-2xl bg-rose/30" />
+        <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
       )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-base text-ink/70">{item.fileName}</p>
-        <p className="text-base font-bold text-ink">
+        {/* key por estado: cada cambio de estado entra con un fade corto. */}
+        <p key={item.status} className="animate-enter text-base font-bold text-ink">
           {STATUS_LABEL[item.status]}
           {item.status === 'uploading' &&
             typeof item.progressPercent === 'number' &&
@@ -229,7 +230,7 @@ function SubirScreen() {
       <TopNav />
       <Confetti trigger={confettiTrigger} />
 
-      <main className="flex min-h-screen flex-col gap-6 pb-10">
+      <main className="flex min-h-screen animate-page flex-col gap-6 pb-10">
         <section
           className="relative flex min-h-[280px] flex-col justify-end gap-2 bg-cover bg-center px-6 py-8"
           style={{ backgroundImage: "url('/ines.jpg')" }}

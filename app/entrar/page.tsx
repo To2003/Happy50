@@ -74,7 +74,7 @@ function EntrarForm() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col justify-center gap-8 px-6 py-10">
+    <main className="flex min-h-screen animate-page flex-col justify-center gap-8 px-6 py-10">
       <h1 className="font-display text-4xl leading-tight text-ink">¿Cómo te llamás?</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
@@ -101,7 +101,7 @@ function EntrarForm() {
                   key={table.id}
                   type="button"
                   onClick={() => setSelectedTableId(table.id)}
-                  className={`h-14 rounded-2xl text-lg font-bold transition-colors duration-150 ease-out ${
+                  className={`h-14 rounded-2xl text-lg font-bold ${
                     selectedTableId === table.id
                       ? 'bg-fuchsia text-white shadow-soft'
                       : 'border-2 border-rose bg-surface text-ink active:bg-rose/20'

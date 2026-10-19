@@ -31,7 +31,7 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
+    <div className="fixed inset-0 z-50 flex animate-page flex-col bg-ink text-white">
       <div className="flex justify-end p-4">
         <button
           type="button"
@@ -150,7 +150,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
           <a
             key={m.id}
             href={`#capitulo-${m.id}`}
-            className="flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
+            className="press flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
           >
             {m.emoji} {m.name}
           </a>
@@ -174,13 +174,14 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                   key={photo.id}
                   type="button"
                   onClick={() => setViewerPhoto(photo)}
-                  className="aspect-square overflow-hidden rounded-2xl bg-rose/30"
+                  className="relative aspect-square overflow-hidden rounded-2xl"
                 >
+                  <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={storage.getPublicUrl(photo.thumb_path)}
                     alt={photo.caption ?? ''}
-                    className="h-full w-full object-cover"
+                    className="relative h-full w-full object-cover"
                   />
                 </button>
               ))}
@@ -197,7 +198,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
               <Link
                 key={table.id}
                 href={`/book/mesa/${table.code}`}
-                className="flex h-12 items-center rounded-full border-2 border-rose bg-surface px-5 text-base font-bold text-ink active:bg-rose/20"
+                className="press flex h-12 items-center rounded-full border-2 border-rose bg-surface px-5 text-base font-bold text-ink active:bg-rose/20"
               >
                 {table.label ?? `Mesa ${table.code}`}
               </Link>

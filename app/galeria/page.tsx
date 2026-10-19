@@ -32,9 +32,11 @@ const EMPTY_FILTERS: Filters = {
 function GridThumb({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
-    <button type="button" onClick={onOpen} className="aspect-square overflow-hidden rounded-2xl bg-rose/30">
+    <button type="button" onClick={onOpen} className="relative aspect-square overflow-hidden rounded-2xl">
+      {/* Placeholder de carga: la foto lo tapa apenas llega. */}
+      <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt={photo.caption ?? ''} className="h-full w-full object-cover" />
+      <img src={url} alt={photo.caption ?? ''} className="relative h-full w-full object-cover" />
     </button>
   )
 }
@@ -54,6 +56,8 @@ function Viewer({
   const [heartCount, setHeartCount] = useState(photo.hearts)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Solo cambia al dar corazón: así el pop no se dispara al abrir el visor.
+  const [popKey, setPopKey] = useState(0)
 
   useEffect(() => {
     if (!guest) return
@@ -78,6 +82,7 @@ function Viewer({
         await addHeart(photo.id, guest.id)
         setHearted(true)
         setHeartCount((count) => count + 1)
+        setPopKey((key) => key + 1)
       }
     } catch {
       // El corazón no cambió: el estado optimista no se tocó, no hace falta revertir nada visible.
@@ -102,7 +107,7 @@ function Viewer({
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
+    <div className="fixed inset-0 z-50 flex animate-page flex-col bg-ink text-white">
       <div className="flex items-center justify-between p-4">
         <button
           type="button"
@@ -135,14 +140,17 @@ function Viewer({
           disabled={!guest || busy}
           className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
         >
-          {hearted ? '❤️' : '🤍'} {heartCount}
+          <span key={popKey} className={popKey > 0 ? 'inline-block animate-pop' : 'inline-block'}>
+            {hearted ? '❤️' : '🤍'}
+          </span>{' '}
+          {heartCount}
         </button>
         {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
       </div>
 
       {confirmingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift">
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift animate-enter">
             <p className="text-lg">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
             <div className="flex gap-3">
               <button
@@ -266,14 +274,14 @@ export default function GaleriaPage() {
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen flex-col gap-4 px-4 py-8">
+    <main className="flex min-h-screen animate-page flex-col gap-4 px-4 py-8">
       <h1 className="font-display text-3xl text-ink">Galería</h1>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          className={`h-12 rounded-full px-4 text-base font-bold transition-colors duration-150 ease-out ${
+          className={`h-12 rounded-full px-4 text-base font-bold ${
             filters.onlyMine ? 'bg-fuchsia text-white' : 'border-2 border-rose bg-surface text-ink'
           }`}
         >
