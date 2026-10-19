@@ -151,7 +151,7 @@ invitado.
 
 ## Diseño
 
-Modo oscuro por defecto. Targets táctiles de 56px mínimo. Nada de estética
+Modo claro, paleta crema/rosa (tokens en `tailwind.config.ts`). Targets táctiles de 56px mínimo. Nada de estética
 de dashboard genérico — es una fiesta, no una app de gestión.
 
 ## Antes de tocar código
