@@ -22,15 +22,15 @@ export function StatsTab() {
   if (error) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-red-400">{error}</p>
-        <button type="button" onClick={load} className="h-10 rounded-lg bg-pink-600 px-4 text-sm font-bold">
+        <p className="text-danger">{error}</p>
+        <button type="button" onClick={load} className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold">
           Reintentar
         </button>
       </div>
     )
   }
 
-  if (!stats) return <p className="text-neutral-400">Cargando...</p>
+  if (!stats) return <p className="text-ink/70">Cargando...</p>
 
   const maxHourCount = Math.max(1, ...stats.photosByHour.map((h) => h.count))
 
@@ -38,7 +38,7 @@ export function StatsTab() {
     <div className="flex flex-col gap-8">
       <section>
         <p className="text-4xl font-bold">{stats.totalPhotos}</p>
-        <p className="text-neutral-400">fotos en total</p>
+        <p className="text-ink/70">fotos en total</p>
       </section>
 
       <section className="flex flex-col gap-2">
@@ -46,14 +46,14 @@ export function StatsTab() {
         <div className="flex flex-col gap-1">
           {stats.photosByHour.map((h) => (
             <div key={h.hour} className="flex items-center gap-2 text-sm">
-              <span className="w-32 shrink-0 text-neutral-400">
+              <span className="w-32 shrink-0 text-ink/70">
                 {new Date(h.hour).toLocaleString('es-AR', {
                   day: '2-digit',
                   month: '2-digit',
                   hour: '2-digit',
                 })}
               </span>
-              <div className="h-4 rounded bg-pink-600" style={{ width: `${(h.count / maxHourCount) * 200}px` }} />
+              <div className="h-4 rounded bg-fuchsia text-white" style={{ width: `${(h.count / maxHourCount) * 200}px` }} />
               <span>{h.count}</span>
             </div>
           ))}
@@ -64,7 +64,7 @@ export function StatsTab() {
         <h2 className="text-lg font-bold">Top uploaders</h2>
         <ol className="flex flex-col gap-1">
           {stats.topUploaders.map((u, i) => (
-            <li key={i} className="text-sm text-neutral-300">
+            <li key={i} className="text-sm text-ink/80">
               {i + 1}. {u.name} — {u.count} fotos
             </li>
           ))}
@@ -82,7 +82,7 @@ export function StatsTab() {
                 alt=""
                 className="aspect-square w-full rounded-lg object-cover"
               />
-              <span className="absolute bottom-1 right-1 rounded bg-black/60 px-2 py-0.5 text-xs">
+              <span className="absolute bottom-1 right-1 rounded bg-ink/60 px-2 py-0.5 text-xs">
                 ❤️ {photo.hearts}
               </span>
             </div>

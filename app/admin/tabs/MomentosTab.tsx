@@ -96,16 +96,16 @@ export function MomentosTab() {
     }
   }
 
-  if (loading) return <p className="text-neutral-400">Cargando...</p>
+  if (loading) return <p className="text-ink/70">Cargando...</p>
 
   if (loadError) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-red-400">{loadError}</p>
+        <p className="text-danger">{loadError}</p>
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-pink-600 px-4 text-sm font-bold"
+          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -121,22 +121,22 @@ export function MomentosTab() {
           {milestones.map((milestone) => (
             <li
               key={milestone.id}
-              className="flex items-center justify-between gap-3 rounded-lg bg-neutral-900 p-3"
+              className="flex items-center justify-between gap-3 rounded-lg bg-surface p-3"
             >
               <div>
                 <p className="font-medium">
                   {milestone.emoji} {milestone.name}
                   {milestone.is_prologue && (
-                    <span className="ml-2 text-xs text-neutral-500">(prólogo)</span>
+                    <span className="ml-2 text-xs text-ink/60">(prólogo)</span>
                   )}
                 </p>
-                <p className="text-sm text-neutral-400">{formatTime(milestone.started_at)}</p>
+                <p className="text-sm text-ink/70">{formatTime(milestone.started_at)}</p>
               </div>
               {!milestone.is_prologue && (
                 <button
                   type="button"
                   onClick={() => void handleStart(milestone.id)}
-                  className="h-10 shrink-0 rounded-lg bg-pink-600 px-4 text-sm font-bold"
+                  className="h-10 shrink-0 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
                 >
                   Arrancar ahora
                 </button>
@@ -148,32 +148,32 @@ export function MomentosTab() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Reasignar por rango horario</h2>
-        <div className="flex flex-col gap-3 rounded-lg bg-neutral-900 p-4">
+        <div className="flex flex-col gap-3 rounded-lg bg-surface p-4">
           <div className="flex flex-wrap gap-3">
-            <label className="flex flex-col gap-1 text-sm text-neutral-400">
+            <label className="flex flex-col gap-1 text-sm text-ink/70">
               Desde
               <input
                 type="datetime-local"
                 value={rangeFrom}
                 onChange={(event) => setRangeFrom(event.target.value)}
-                className="h-10 rounded-lg bg-neutral-800 px-3 text-white"
+                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-neutral-400">
+            <label className="flex flex-col gap-1 text-sm text-ink/70">
               Hasta
               <input
                 type="datetime-local"
                 value={rangeTo}
                 onChange={(event) => setRangeTo(event.target.value)}
-                className="h-10 rounded-lg bg-neutral-800 px-3 text-white"
+                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-neutral-400">
+            <label className="flex flex-col gap-1 text-sm text-ink/70">
               Momento
               <select
                 value={rangeMilestone}
                 onChange={(event) => setRangeMilestone(event.target.value)}
-                className="h-10 rounded-lg bg-neutral-800 px-3 text-white"
+                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
               >
                 <option value="">Elegir...</option>
                 {milestones.map((m) => (
@@ -188,11 +188,11 @@ export function MomentosTab() {
             type="button"
             onClick={() => void handleRangeReassign()}
             disabled={!rangeFrom || !rangeTo || !rangeMilestone}
-            className="h-10 w-fit rounded-lg bg-pink-600 px-4 text-sm font-bold disabled:opacity-40"
+            className="h-10 w-fit rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
           >
             Reasignar rango
           </button>
-          {rangeMessage && <p className="text-sm text-neutral-300">{rangeMessage}</p>}
+          {rangeMessage && <p className="text-sm text-ink/80">{rangeMessage}</p>}
         </div>
       </section>
 
@@ -200,20 +200,20 @@ export function MomentosTab() {
         <h2 className="text-lg font-bold">Últimas fotos — reasignar individual</h2>
         <ul className="flex flex-col gap-2">
           {photos.map((photo) => (
-            <li key={photo.id} className="flex items-center gap-3 rounded-lg bg-neutral-900 p-3">
+            <li key={photo.id} className="flex items-center gap-3 rounded-lg bg-surface p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={storage.getPublicUrl(photo.storage_path)}
                 alt=""
                 className="h-14 w-14 shrink-0 rounded object-cover"
               />
-              <p className="min-w-0 flex-1 truncate text-sm text-neutral-400">
+              <p className="min-w-0 flex-1 truncate text-sm text-ink/70">
                 {new Date(photo.taken_at).toLocaleString('es-AR')}
               </p>
               <select
                 defaultValue={photo.milestone_override_id ?? ''}
                 onChange={(event) => void handleReassign(photo.id, event.target.value)}
-                className="h-10 shrink-0 rounded-lg bg-neutral-800 px-3 text-sm text-white"
+                className="h-10 shrink-0 rounded-lg bg-rose/20 px-3 text-sm text-ink"
               >
                 <option value="">(automático)</option>
                 {milestones.map((m) => (
