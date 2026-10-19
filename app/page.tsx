@@ -35,13 +35,13 @@ function Bienvenida() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6 text-center">
-      <h1 className="text-4xl font-bold">50 años</h1>
-      <p className="text-lg text-neutral-300">
+      <h1 className="font-display text-6xl leading-none text-fuchsia">50 años</h1>
+      <p className="max-w-xs text-lg text-ink/80">
         Sumate a la fiesta y compartí tus fotos de la noche.
       </p>
       <a
         href={entrarHref}
-        className="flex h-14 min-w-48 items-center justify-center rounded-lg bg-pink-600 px-10 text-lg font-bold active:bg-pink-700"
+        className="flex h-16 min-w-48 items-center justify-center rounded-full bg-fuchsia px-10 text-xl font-bold text-white shadow-soft active:opacity-90"
       >
         Sumate
       </a>

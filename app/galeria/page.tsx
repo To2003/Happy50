@@ -32,7 +32,7 @@ const EMPTY_FILTERS: Filters = {
 function GridThumb({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
-    <button type="button" onClick={onOpen} className="aspect-square overflow-hidden rounded-lg">
+    <button type="button" onClick={onOpen} className="aspect-square overflow-hidden rounded-2xl bg-rose/30">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={url} alt={photo.caption ?? ''} className="h-full w-full object-cover" />
     </button>
@@ -102,16 +102,21 @@ function Viewer({
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
       <div className="flex items-center justify-between p-4">
-        <button type="button" onClick={onClose} className="text-2xl">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+        >
           ✕
         </button>
         {isOwn && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="text-sm text-red-400"
+            className="h-12 rounded-full px-4 text-base font-bold text-card-rose active:bg-white/10"
           >
             Borrar
           </button>
@@ -128,23 +133,23 @@ function Viewer({
           type="button"
           onClick={() => void toggleHeart()}
           disabled={!guest || busy}
-          className="flex h-12 items-center gap-2 rounded-lg bg-neutral-900 px-4 text-lg disabled:opacity-40"
+          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
         >
           {hearted ? '❤️' : '🤍'} {heartCount}
         </button>
-        {photo.caption && <p className="flex-1 truncate text-neutral-300">{photo.caption}</p>}
+        {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
       </div>
 
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-lg bg-neutral-900 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift">
             <p className="text-lg">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(false)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-lg bg-neutral-800 font-medium disabled:opacity-40"
+                className="h-14 flex-1 rounded-full border-2 border-rose bg-surface text-base font-bold text-ink disabled:opacity-40"
               >
                 No
               </button>
@@ -152,7 +157,7 @@ function Viewer({
                 type="button"
                 onClick={() => void confirmDelete()}
                 disabled={busy}
-                className="h-12 flex-1 rounded-lg bg-red-600 font-bold disabled:opacity-40"
+                className="h-14 flex-1 rounded-full bg-danger text-base font-bold text-white disabled:opacity-40"
               >
                 {busy ? 'Borrando...' : 'Sí, borrar'}
               </button>
@@ -261,15 +266,15 @@ export default function GaleriaPage() {
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
-      <h1 className="text-2xl font-bold">Galería</h1>
+    <main className="flex min-h-screen flex-col gap-4 px-4 py-8">
+      <h1 className="font-display text-3xl text-ink">Galería</h1>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          className={`h-10 rounded-lg px-3 text-sm font-medium ${
-            filters.onlyMine ? 'bg-pink-600' : 'bg-neutral-900'
+          className={`h-12 rounded-full px-4 text-base font-bold transition-colors duration-150 ease-out ${
+            filters.onlyMine ? 'bg-fuchsia text-white' : 'border-2 border-rose bg-surface text-ink'
           }`}
         >
           Mis fotos
@@ -280,7 +285,7 @@ export default function GaleriaPage() {
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="h-10 rounded-lg bg-neutral-900 px-3 text-sm"
+          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -293,7 +298,7 @@ export default function GaleriaPage() {
         <select
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="h-10 rounded-lg bg-neutral-900 px-3 text-sm"
+          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -311,7 +316,7 @@ export default function GaleriaPage() {
       </div>
 
       {photos.length === 0 && !loading && (
-        <p className="text-center text-neutral-400">Todavía no hay fotos con estos filtros.</p>
+        <p className="py-10 text-center text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
       )}
 
       <div ref={sentinelRef} className="h-4" />

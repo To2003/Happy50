@@ -26,7 +26,7 @@ export default function BookMesaPage() {
   if (table === null) {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 text-center">
-        <p className="text-neutral-400">No encontramos esa mesa.</p>
+        <p className="text-base text-ink/70">No encontramos esa mesa.</p>
       </main>
     )
   }
@@ -34,7 +34,7 @@ export default function BookMesaPage() {
   return (
     <main className="min-h-screen">
       <div className="px-4 pt-6">
-        <h1 className="text-2xl font-bold">El book de {table.label}</h1>
+        <h1 className="font-display text-3xl text-ink">El book de {table.label}</h1>
       </div>
       <BookTimeline tableFilter={table} />
     </main>

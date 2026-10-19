@@ -31,9 +31,14 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
       <div className="flex justify-end p-4">
-        <button type="button" onClick={onClose} className="text-2xl text-white">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+        >
           ✕
         </button>
       </div>
@@ -41,9 +46,9 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt={photo.caption ?? ''} className="max-h-full max-w-full object-contain" />
       </div>
-      <div className="flex flex-col gap-1 p-4 text-white">
+      <div className="flex flex-col gap-1 p-4">
         {photo.caption && <p>{photo.caption}</p>}
-        <p className="text-sm text-neutral-400">
+        <p className="text-base text-white/70">
           {photo.guest_name ? `Por ${photo.guest_name}` : null} {photo.hearts > 0 && `· ❤️ ${photo.hearts}`}
         </p>
       </div>
@@ -119,16 +124,16 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableFilter?.id])
 
-  if (loading) return <p className="p-6 text-neutral-400">Cargando...</p>
+  if (loading) return <p className="p-6 text-base text-ink/70">Cargando...</p>
 
   if (error) {
     return (
       <div className="flex flex-col items-start gap-3 p-6">
-        <p className="text-red-400">{error}</p>
+        <p className="text-base text-danger">{error}</p>
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-pink-600 px-4 text-sm font-bold"
+          className="h-12 rounded-full bg-fuchsia px-6 text-base font-bold text-white"
         >
           Reintentar
         </button>
@@ -140,12 +145,12 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
   return (
     <div className="flex flex-col gap-8 pb-16">
-      <div className="sticky top-0 z-10 flex gap-2 overflow-x-auto bg-neutral-950 px-4 py-3">
+      <div className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose/60 bg-bg/95 px-4 py-3 backdrop-blur">
         {chaptersWithPhotos.map((m) => (
           <a
             key={m.id}
             href={`#capitulo-${m.id}`}
-            className="shrink-0 rounded-lg bg-neutral-900 px-3 py-2 text-sm"
+            className="flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
           >
             {m.emoji} {m.name}
           </a>
@@ -153,14 +158,14 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
       </div>
 
       {chaptersWithPhotos.length === 0 && (
-        <p className="px-6 text-neutral-400">Todavía no hay fotos acá.</p>
+        <p className="px-6 text-base text-ink/70">Todavía no hay fotos acá.</p>
       )}
 
       {chaptersWithPhotos.map((milestone) => {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
           <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex flex-col gap-3 px-4">
-            <h2 className="text-xl font-bold">
+            <h2 className="font-display text-2xl text-ink">
               {milestone.emoji} {chapterTitle(milestone)}
             </h2>
             <div className="grid grid-cols-3 gap-2">
@@ -169,7 +174,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                   key={photo.id}
                   type="button"
                   onClick={() => setViewerPhoto(photo)}
-                  className="aspect-square overflow-hidden rounded-lg"
+                  className="aspect-square overflow-hidden rounded-2xl bg-rose/30"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -186,13 +191,13 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
       {!tableFilter && tables.length > 0 && (
         <section className="flex flex-col gap-3 px-4">
-          <h2 className="text-xl font-bold">El book de tu mesa</h2>
+          <h2 className="font-display text-2xl text-ink">El book de tu mesa</h2>
           <div className="flex flex-wrap gap-2">
             {tables.map((table) => (
               <Link
                 key={table.id}
                 href={`/book/mesa/${table.code}`}
-                className="rounded-lg bg-neutral-900 px-4 py-2 text-sm"
+                className="flex h-12 items-center rounded-full border-2 border-rose bg-surface px-5 text-base font-bold text-ink active:bg-rose/20"
               >
                 {table.label ?? `Mesa ${table.code}`}
               </Link>

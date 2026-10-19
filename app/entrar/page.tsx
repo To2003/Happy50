@@ -75,7 +75,7 @@ function EntrarForm() {
 
   return (
     <main className="flex min-h-screen flex-col justify-center gap-8 px-6 py-10">
-      <h1 className="text-3xl font-bold">¿Cómo te llamás?</h1>
+      <h1 className="font-display text-4xl leading-tight text-ink">¿Cómo te llamás?</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <input
@@ -84,14 +84,14 @@ function EntrarForm() {
           onChange={(event) => setName(event.target.value)}
           placeholder="Tu nombre"
           autoFocus
-          className="h-14 rounded-lg bg-neutral-900 px-4 text-lg outline-none ring-pink-600 focus:ring-2"
+          className="h-14 rounded-2xl border border-rose bg-surface px-4 text-lg text-ink shadow-soft outline-none placeholder:text-ink/50 focus:ring-2 focus:ring-fuchsia"
         />
 
         {!tableFromQr && (
           <div className="flex flex-col gap-3">
-            <p className="text-lg">¿En qué mesa estás?</p>
+            <p className="text-lg font-bold text-ink">¿En qué mesa estás?</p>
             {mesaCode && (
-              <p className="text-sm text-neutral-400">
+              <p className="text-base text-ink/70">
                 No encontramos esa mesa, elegí la tuya de la lista.
               </p>
             )}
@@ -101,10 +101,10 @@ function EntrarForm() {
                   key={table.id}
                   type="button"
                   onClick={() => setSelectedTableId(table.id)}
-                  className={`h-14 rounded-lg text-lg font-medium transition-colors ${
+                  className={`h-14 rounded-2xl text-lg font-bold transition-colors duration-150 ease-out ${
                     selectedTableId === table.id
-                      ? 'bg-pink-600'
-                      : 'bg-neutral-900 active:bg-neutral-800'
+                      ? 'bg-fuchsia text-white shadow-soft'
+                      : 'border-2 border-rose bg-surface text-ink active:bg-rose/20'
                   }`}
                 >
                   {table.label ?? table.code}
@@ -114,12 +114,12 @@ function EntrarForm() {
           </div>
         )}
 
-        {error && <p className="text-red-400">{error}</p>}
+        {error && <p className="text-base text-danger">{error}</p>}
 
         <button
           type="submit"
           disabled={!canSubmit}
-          className="h-14 rounded-lg bg-pink-600 text-lg font-bold disabled:opacity-40"
+          className="h-16 rounded-full bg-fuchsia text-xl font-bold text-white shadow-soft active:opacity-90 disabled:opacity-40"
         >
           {loading ? 'Un segundo...' : 'Sumate'}
         </button>
