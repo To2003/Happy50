@@ -20,6 +20,25 @@
   outline-offset: 2px;
 }
 
+/* Press táctil: todo botón se hunde un poco al tocarlo. Los links con
+   forma de botón suman la clase .press. */
+button:not(:disabled),
+.press {
+  transition-property: transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+button:not(:disabled):active,
+.press:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):hover,
+  .press:hover {
+    opacity: 0.9;
+  }
+}
+
 /* Corte global: si el sistema pide menos movimiento, nada se anima
    (incluye el confetti y cualquier transición de las fases siguientes). */
 @media (prefers-reduced-motion: reduce) {

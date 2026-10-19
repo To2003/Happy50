@@ -35,6 +35,29 @@ const config: Config = {
         250: '250ms',
         400: '400ms',
       },
+      keyframes: {
+        enter: {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        grow: {
+          from: { opacity: '0', transform: 'scaleX(0.3)' },
+          to: { opacity: '1', transform: 'scaleX(1)' },
+        },
+        pop: {
+          '0%': { transform: 'scale(1)' },
+          '40%': { transform: 'scale(1.35)' },
+          '100%': { transform: 'scale(1)' },
+        },
+      },
+      // fill-mode backwards (no both): un transform retenido en <main> volvería
+      // containing block a los hijos position:fixed (visor, confetti).
+      animation: {
+        enter: 'enter 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
+        page: 'enter 200ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
+        grow: 'grow 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
+        pop: 'pop 300ms cubic-bezier(0.23, 1, 0.32, 1)',
+      },
       fontFamily: {
         display: ['var(--font-display)'],
         body: ['var(--font-body)'],
