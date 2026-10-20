@@ -12,7 +12,13 @@ import { useUploadQueue } from '@/lib/useUploadQueue'
 import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
-import { Icon } from '@/components/Icon'
+import { Icon, type IconName } from '@/components/Icon'
+import { Button } from '@/components/Button'
+import { Card } from '@/components/Card'
+import { Chip } from '@/components/Chip'
+import { Input } from '@/components/Field'
+import { Skeleton } from '@/components/Skeleton'
+import { useToast } from '@/components/Toast'
 
 // Foto del hero. Con null el hero es tipográfico (el "50" grande); al poner
 // la ruta (ej. '/ines.jpg') pasa a foto a sangre con degradado inferior, sin
@@ -48,42 +54,61 @@ function QueueThumb({ blob }: { blob: Blob }) {
     return () => URL.revokeObjectURL(objectUrl)
   }, [blob])
 
-  if (!url) return <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
+  if (!url) return <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
 
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+  return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+}
+
+const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: string }> = {
+  waiting: { name: 'clock', className: 'text-ink/70' },
+  uploading: { name: 'loader', className: 'animate-spin text-fuchsia' },
+  done: { name: 'check', className: 'text-fuchsia' },
+  failed: { name: 'alert', className: 'text-danger' },
 }
 
 function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
+  const icon = STATUS_ICON[item.status]
+  const progress =
+    item.status === 'done' ? 100 : item.status === 'uploading' ? (item.progressPercent ?? 0) : 0
+
   return (
-    <li className="flex animate-enter items-center gap-3 rounded-2xl border border-rose bg-surface p-3">
-      {item.thumbBlob ? (
-        <QueueThumb blob={item.thumbBlob} />
-      ) : (
-        <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-base text-ink/70">{item.fileName}</p>
-        {/* key por estado: cada cambio de estado entra con un fade corto. */}
-        <p key={item.status} className="animate-enter text-base font-semibold text-ink">
-          {STATUS_LABEL[item.status]}
-          {item.status === 'uploading' &&
-            typeof item.progressPercent === 'number' &&
-            ` (${item.progressPercent}%)`}
-        </p>
-        {item.status === 'failed' && (
-          <p className="text-base text-danger">{item.errorMessage ?? 'No se pudo subir.'}</p>
+    <li className="animate-enter">
+      <Card className="flex items-center gap-3 p-3">
+        {item.thumbBlob ? (
+          <QueueThumb blob={item.thumbBlob} />
+        ) : (
+          <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
         )}
-      </div>
-      {item.status === 'failed' && (
-        <button
-          type="button"
-          onClick={() => onRetry(item.id)}
-          className="h-12 shrink-0 rounded-full bg-fuchsia px-4 text-base font-semibold text-white"
-        >
-          Reintentar
-        </button>
-      )}
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <p className="truncate text-sm text-ink/70">{item.fileName}</p>
+          {/* key por estado: cada cambio de estado entra con un fade corto. */}
+          <p key={item.status} className="flex animate-enter items-center gap-1.5 text-base font-semibold text-ink">
+            <Icon name={icon.name} className={`h-4 w-4 shrink-0 ${icon.className}`} />
+            {STATUS_LABEL[item.status]}
+            {item.status === 'uploading' &&
+              typeof item.progressPercent === 'number' &&
+              <span className="tabular-nums">{` (${item.progressPercent}%)`}</span>}
+          </p>
+          {item.status === 'failed' ? (
+            <p className="text-sm text-danger">{item.errorMessage ?? 'No se pudo subir.'}</p>
+          ) : (
+            <div className="h-1 overflow-hidden rounded-full bg-rose/60" aria-hidden>
+              <div
+                className={`h-full origin-left rounded-full transition-transform duration-400 ease-out ${
+                  item.status === 'done' ? 'bg-gold' : 'bg-fuchsia'
+                }`}
+                style={{ transform: `scaleX(${progress / 100})` }}
+              />
+            </div>
+          )}
+        </div>
+        {item.status === 'failed' && (
+          <Button size="sm" icon="retry" onClick={() => onRetry(item.id)} className="shrink-0">
+            Reintentar
+          </Button>
+        )}
+      </Card>
     </li>
   )
 }
@@ -107,6 +132,7 @@ function SubirScreen() {
   const celebratedIds = useRef<Set<string>>(new Set())
 
   const queue = useUploadQueue()
+  const { toast, showToast } = useToast()
   const photoCount = usePhotoCount()
 
   useEffect(() => {
@@ -149,7 +175,12 @@ function SubirScreen() {
     if (newlyDone.length === 0) return
     for (const item of newlyDone) celebratedIds.current.add(item.id)
     setConfettiTrigger((n) => n + 1)
-  }, [queue])
+    showToast(
+      newlyDone.length === 1
+        ? '¡Listo! Tu foto ya está en el álbum'
+        : `¡Listo! Ya están tus ${newlyDone.length} fotos en el álbum`,
+    )
+  }, [queue, showToast])
 
   function handleFilesSelected(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files
@@ -236,6 +267,7 @@ function SubirScreen() {
     <>
       <TopNav />
       <Confetti trigger={confettiTrigger} />
+      {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
       <main className="flex min-h-screen flex-col gap-6 pb-12">
@@ -277,22 +309,12 @@ function SubirScreen() {
         <div className="flex animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
-              <button
-                type="button"
-                onClick={() => cameraInputRef.current?.click()}
-                className="flex h-16 items-center justify-center gap-3 rounded-full bg-fuchsia text-lg font-semibold text-white shadow-soft"
-              >
-                <Icon name="camera" />
+              <Button size="lg" icon="camera" onClick={() => cameraInputRef.current?.click()}>
                 Sacar foto
-              </button>
-              <button
-                type="button"
-                onClick={() => galleryInputRef.current?.click()}
-                className="flex h-14 items-center justify-center gap-3 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink"
-              >
-                <Icon name="images" className="h-5 w-5" />
+              </Button>
+              <Button variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
                 Elegir fotos
-              </button>
+              </Button>
 
               <input
                 ref={cameraInputRef}
@@ -322,18 +344,17 @@ function SubirScreen() {
                     key={item.id}
                     src={item.previewUrl}
                     alt=""
-                    className="aspect-square w-full rounded-xl object-cover"
+                    className="aspect-square w-full animate-enter rounded-xl object-cover"
                   />
                 ))}
               </div>
 
-              <input
+              <Input
                 type="text"
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
                 aria-label="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-base text-ink placeholder:text-ink/70"
               />
 
               {missions.length > 0 && (
@@ -341,22 +362,15 @@ function SubirScreen() {
                   <p className="text-sm font-semibold text-ink/70">Misión (opcional)</p>
                   <div className="flex flex-wrap gap-2">
                     {missions.map((mission) => (
-                      <button
+                      <Chip
                         key={mission.id}
-                        type="button"
+                        selected={missionId === mission.id}
                         onClick={() =>
                           setMissionId((current) => (current === mission.id ? null : mission.id))
                         }
-                        aria-pressed={missionId === mission.id}
-                        className={`flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold ${
-                          missionId === mission.id
-                            ? 'bg-fuchsia text-white'
-                            : 'border border-ink/20 bg-surface text-ink'
-                        }`}
                       >
-                        {missionId === mission.id && <Icon name="check" className="h-4 w-4" />}
                         {mission.title}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -365,30 +379,25 @@ function SubirScreen() {
               {stagingError && <p className="text-base text-danger">{stagingError}</p>}
 
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={cancelStaged}
-                  disabled={preparing}
-                  className="h-14 flex-1 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink disabled:opacity-40"
-                >
+                <Button variant="secondary" onClick={cancelStaged} disabled={preparing} className="flex-1 px-4">
                   Cancelar
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  icon="upload"
+                  loading={preparing}
                   onClick={() => void confirmUpload()}
-                  disabled={preparing}
-                  className="h-14 flex-[2] rounded-full bg-fuchsia text-base font-semibold text-white shadow-soft disabled:opacity-40"
+                  className="flex-[2] px-4"
                 >
                   {preparing
-                    ? 'Preparando...'
+                    ? 'Preparando…'
                     : `Subir ${staged.length > 1 ? staged.length + ' fotos' : 'foto'}`}
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
           {queue.length > 0 && (
-            <ul aria-live="polite" className="flex flex-col gap-2">
+            <ul aria-live="polite" className="flex flex-col gap-3">
               {queue.map((item) => (
                 <QueueRow key={item.id} item={item} onRetry={retryItem} />
               ))}
