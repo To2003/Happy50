@@ -278,7 +278,7 @@ function SubirScreen() {
       {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main className="flex min-h-screen flex-col gap-6 pb-12">
+      <main id="contenido" className="flex min-h-screen flex-col gap-6 pb-12">
         {/* Con foto: alto fijo (42svh), sin salto de layout al cargar y con
             "Sacar foto" visible sin scrollear a 360x640. Sin foto: campo bordó
             del alto de su contenido. */}
