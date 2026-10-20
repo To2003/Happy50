@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import { morphClose, morphOpen } from '@/lib/viewTransition'
+import { chaptersWithPhotos, groupByChapter } from '@/lib/book'
 import { useSharePhoto } from '@/lib/useSharePhoto'
 import type { Database } from '@/lib/database.types'
 
@@ -162,19 +163,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
       const { data: guestRows } = await supabase.from('guests').select('id, name').in('id', photoGuestIds)
       const nameById = new Map((guestRows ?? []).map((g) => [g.id, g.name]))
 
-      const grouped = new Map<string, BookPhoto[]>()
-      for (const photo of photos ?? []) {
-        const key = photo.effective_milestone_id
-        if (!key) continue
-        const withName: BookPhoto = {
-          ...photo,
-          guest_name: photo.guest_id ? (nameById.get(photo.guest_id) ?? null) : null,
-        }
-        const list = grouped.get(key) ?? []
-        list.push(withName)
-        grouped.set(key, list)
-      }
-      setPhotosByMilestone(grouped)
+      setPhotosByMilestone(groupByChapter(photos ?? [], nameById))
     } catch {
       setError('No se pudo cargar el book. Puede ser la conexión — probá de nuevo.')
     } finally {
@@ -215,16 +204,16 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
     )
   }
 
-  const chaptersWithPhotos = milestones.filter((m) => (photosByMilestone.get(m.id)?.length ?? 0) > 0)
+  const chapters = chaptersWithPhotos(milestones, photosByMilestone)
 
   return (
     <div className="flex flex-col gap-12 pb-16">
-      {chaptersWithPhotos.length > 0 && (
+      {chapters.length > 0 && (
         <nav
           aria-label="Capítulos"
           className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose bg-bg px-4 py-2.5"
         >
-          {chaptersWithPhotos.map((m) => (
+          {chapters.map((m) => (
             <a
               key={m.id}
               href={`#capitulo-${m.id}`}
@@ -236,7 +225,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         </nav>
       )}
 
-      {chaptersWithPhotos.length === 0 && (
+      {chapters.length === 0 && (
         <div className="px-4">
           <EmptyState icon="book">
             <p className="text-base text-ink/70">Todavía no hay fotos acá.</p>
@@ -244,7 +233,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         </div>
       )}
 
-      {chaptersWithPhotos.map((milestone) => {
+      {chapters.map((milestone) => {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
           <Reveal key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
