@@ -129,7 +129,9 @@ function SubirScreen() {
 
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
-  const celebratedIds = useRef<Set<string>>(new Set())
+  // Último estado visto de cada foto. La primera vez solo se registra: así las
+  // fotos que ya estaban listas al volver a /subir no festejan de nuevo.
+  const seenStatus = useRef<Map<string, QueueItem['status']> | null>(null)
 
   const queue = useUploadQueue()
   const { toast, showToast } = useToast()
@@ -169,11 +171,15 @@ function SubirScreen() {
   // Confetti: un estallido por cada foto que termina de subirse de verdad,
   // no una animación ambiente — ver components/Confetti.tsx.
   useEffect(() => {
+    const previous = seenStatus.current
+    seenStatus.current = new Map(queue.map((item) => [item.id, item.status]))
+    if (!previous) return
     const newlyDone = queue.filter(
-      (item) => item.status === 'done' && !celebratedIds.current.has(item.id),
+      // Solo transiciones vistas acá: lo que llega ya "done" (hidratado de
+      // IndexedDB) no tiene estado previo y no festeja.
+      (item) => item.status === 'done' && previous.has(item.id) && previous.get(item.id) !== 'done',
     )
     if (newlyDone.length === 0) return
-    for (const item of newlyDone) celebratedIds.current.add(item.id)
     setConfettiTrigger((n) => n + 1)
     showToast(
       newlyDone.length === 1
