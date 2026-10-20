@@ -26,7 +26,7 @@ export function LoginForm() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6">
-      <h1 className="text-2xl font-bold">Admin</h1>
+      <h1 className="font-display text-3xl font-semibold">Admin</h1>
       <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
         <input
           type="password"

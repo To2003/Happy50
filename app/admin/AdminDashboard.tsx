@@ -31,7 +31,7 @@ export function AdminDashboard() {
   return (
     <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin</h1>
+        <h1 className="font-display text-3xl font-semibold">Admin</h1>
         <div className="flex items-center gap-3">
           <a
             href="/admin/export"

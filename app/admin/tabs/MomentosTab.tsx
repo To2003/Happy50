@@ -116,7 +116,7 @@ export function MomentosTab() {
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Momentos</h2>
+        <h2 className="font-display text-xl font-semibold">Momentos</h2>
         <ul className="flex flex-col gap-2">
           {milestones.map((milestone) => (
             <li
@@ -147,7 +147,7 @@ export function MomentosTab() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Reasignar por rango horario</h2>
+        <h2 className="font-display text-xl font-semibold">Reasignar por rango horario</h2>
         <div className="flex flex-col gap-3 rounded-lg bg-surface p-4">
           <div className="flex flex-wrap gap-3">
             <label className="flex flex-col gap-1 text-sm text-ink/70">
@@ -197,7 +197,7 @@ export function MomentosTab() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Últimas fotos — reasignar individual</h2>
+        <h2 className="font-display text-xl font-semibold">Últimas fotos — reasignar individual</h2>
         <ul className="flex flex-col gap-2">
           {photos.map((photo) => (
             <li key={photo.id} className="flex items-center gap-3 rounded-lg bg-surface p-3">

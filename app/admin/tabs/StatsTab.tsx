@@ -42,7 +42,7 @@ export function StatsTab() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold">Fotos por hora</h2>
+        <h2 className="font-display text-xl font-semibold">Fotos por hora</h2>
         <div className="flex flex-col gap-1">
           {stats.photosByHour.map((h) => (
             <div key={h.hour} className="flex items-center gap-2 text-sm">
@@ -61,7 +61,7 @@ export function StatsTab() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold">Top uploaders</h2>
+        <h2 className="font-display text-xl font-semibold">Top uploaders</h2>
         <ol className="flex flex-col gap-1">
           {stats.topUploaders.map((u, i) => (
             <li key={i} className="text-sm text-ink/80">
@@ -72,7 +72,7 @@ export function StatsTab() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold">Top votadas</h2>
+        <h2 className="font-display text-xl font-semibold">Top votadas</h2>
         <div className="grid grid-cols-3 gap-2">
           {stats.topVoted.map((photo) => (
             <div key={photo.id} className="relative">
