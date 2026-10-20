@@ -23,7 +23,7 @@ export function StatsTab() {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-danger">{error}</p>
-        <button type="button" onClick={load} className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold">
+        <button type="button" onClick={load} className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold">
           Reintentar
         </button>
       </div>

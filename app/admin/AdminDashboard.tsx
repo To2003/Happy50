@@ -35,14 +35,14 @@ export function AdminDashboard() {
         <div className="flex items-center gap-3">
           <a
             href="/admin/export"
-            className="flex h-10 items-center rounded-lg bg-surface px-4 text-sm font-medium"
+            className="flex h-11 items-center rounded-lg bg-surface px-4 text-sm font-medium"
           >
             Exportar manifiesto
           </a>
           <button
             type="button"
             onClick={() => void handleLogout()}
-            className="h-10 rounded-lg bg-surface px-4 text-sm font-medium"
+            className="h-11 rounded-lg bg-surface px-4 text-sm font-medium"
           >
             Salir
           </button>
@@ -55,7 +55,7 @@ export function AdminDashboard() {
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`h-10 rounded-lg px-4 text-sm font-medium ${
+            className={`h-11 rounded-lg px-4 text-sm font-medium ${
               tab === t.id ? 'bg-fuchsia text-white' : 'bg-surface'
             }`}
           >

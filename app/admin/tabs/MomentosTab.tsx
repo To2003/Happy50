@@ -105,7 +105,7 @@ export function MomentosTab() {
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -127,7 +127,7 @@ export function MomentosTab() {
                 <p className="font-medium">
                   {milestone.emoji} {milestone.name}
                   {milestone.is_prologue && (
-                    <span className="ml-2 text-xs text-ink/60">(prólogo)</span>
+                    <span className="ml-2 text-xs text-ink/70">(prólogo)</span>
                   )}
                 </p>
                 <p className="text-sm text-ink/70">{formatTime(milestone.started_at)}</p>
@@ -136,7 +136,7 @@ export function MomentosTab() {
                 <button
                   type="button"
                   onClick={() => void handleStart(milestone.id)}
-                  className="h-10 shrink-0 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
+                  className="h-11 shrink-0 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
                 >
                   Arrancar ahora
                 </button>
@@ -156,7 +156,7 @@ export function MomentosTab() {
                 type="datetime-local"
                 value={rangeFrom}
                 onChange={(event) => setRangeFrom(event.target.value)}
-                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
+                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
               />
             </label>
             <label className="flex flex-col gap-1 text-sm text-ink/70">
@@ -165,7 +165,7 @@ export function MomentosTab() {
                 type="datetime-local"
                 value={rangeTo}
                 onChange={(event) => setRangeTo(event.target.value)}
-                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
+                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
               />
             </label>
             <label className="flex flex-col gap-1 text-sm text-ink/70">
@@ -173,7 +173,7 @@ export function MomentosTab() {
               <select
                 value={rangeMilestone}
                 onChange={(event) => setRangeMilestone(event.target.value)}
-                className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
+                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
               >
                 <option value="">Elegir...</option>
                 {milestones.map((m) => (
@@ -188,7 +188,7 @@ export function MomentosTab() {
             type="button"
             onClick={() => void handleRangeReassign()}
             disabled={!rangeFrom || !rangeTo || !rangeMilestone}
-            className="h-10 w-fit rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
+            className="h-11 w-fit rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
           >
             Reasignar rango
           </button>
@@ -213,7 +213,7 @@ export function MomentosTab() {
               <select
                 defaultValue={photo.milestone_override_id ?? ''}
                 onChange={(event) => void handleReassign(photo.id, event.target.value)}
-                className="h-10 shrink-0 rounded-lg bg-rose/20 px-3 text-sm text-ink"
+                className="h-11 min-w-0 max-w-[50%] rounded-lg bg-rose/20 px-3 text-sm text-ink"
               >
                 <option value="">(automático)</option>
                 {milestones.map((m) => (

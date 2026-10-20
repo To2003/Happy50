@@ -65,7 +65,7 @@ export function MesasTab() {
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -86,7 +86,7 @@ export function MesasTab() {
           <input
             value={code}
             onChange={(event) => setCode(event.target.value)}
-            className="h-10 w-24 rounded-lg bg-rose/20 px-3 text-ink"
+            className="h-11 w-24 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink/70">
@@ -94,14 +94,14 @@ export function MesasTab() {
           <input
             value={label}
             onChange={(event) => setLabel(event.target.value)}
-            className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
+            className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
         <button
           type="button"
           onClick={() => void handleCreate()}
           disabled={!code.trim()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
         >
           Agregar
         </button>
@@ -118,7 +118,7 @@ export function MesasTab() {
             <button
               type="button"
               onClick={() => void handleDelete(table.id)}
-              className="h-10 rounded-lg bg-danger text-white px-3 text-sm font-medium"
+              className="h-11 rounded-lg bg-danger text-white px-3 text-sm font-medium"
             >
               Borrar
             </button>

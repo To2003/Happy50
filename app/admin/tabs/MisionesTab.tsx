@@ -73,7 +73,7 @@ export function MisionesTab() {
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -89,7 +89,7 @@ export function MisionesTab() {
           <input
             value={emoji}
             onChange={(event) => setEmoji(event.target.value)}
-            className="h-10 w-16 rounded-lg bg-rose/20 px-3 text-ink"
+            className="h-11 w-16 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1 text-sm text-ink/70">
@@ -97,14 +97,14 @@ export function MisionesTab() {
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="h-10 rounded-lg bg-rose/20 px-3 text-ink"
+            className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
         <button
           type="button"
           onClick={() => void handleCreate()}
           disabled={!title.trim()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
         >
           Agregar
         </button>
@@ -120,8 +120,8 @@ export function MisionesTab() {
             <button
               type="button"
               onClick={() => void toggleActive(mission)}
-              className={`h-10 rounded-lg px-3 text-sm font-medium ${
-                mission.active ? 'bg-rose/20' : 'bg-rose/40 text-ink/70'
+              className={`h-11 rounded-lg px-3 text-sm font-medium ${
+                mission.active ? 'bg-rose/20' : 'bg-rose/40 text-ink/80'
               }`}
             >
               {mission.active ? 'Activa' : 'Inactiva'}
@@ -129,7 +129,7 @@ export function MisionesTab() {
             <button
               type="button"
               onClick={() => void handleDelete(mission.id)}
-              className="h-10 rounded-lg bg-danger text-white px-3 text-sm font-medium"
+              className="h-11 rounded-lg bg-danger text-white px-3 text-sm font-medium"
             >
               Borrar
             </button>

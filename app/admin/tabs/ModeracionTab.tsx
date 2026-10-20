@@ -63,7 +63,7 @@ export function ModeracionTab() {
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -85,12 +85,12 @@ export function ModeracionTab() {
             <p className="truncate text-sm text-ink/80">
               {photo.guest_name ?? 'Invitado'} — {new Date(photo.taken_at).toLocaleString('es-AR')}
             </p>
-            {photo.caption && <p className="truncate text-sm text-ink/60">{photo.caption}</p>}
+            {photo.caption && <p className="truncate text-sm text-ink/70">{photo.caption}</p>}
           </div>
           <button
             type="button"
             onClick={() => void toggleHidden(photo)}
-            className={`h-10 shrink-0 rounded-lg px-3 text-sm font-medium ${
+            className={`h-11 shrink-0 rounded-lg px-3 text-sm font-medium ${
               photo.status === 'hidden' ? 'bg-rose/40' : 'bg-rose/20'
             }`}
           >
@@ -99,7 +99,7 @@ export function ModeracionTab() {
           <button
             type="button"
             onClick={() => void toggleFeatured(photo)}
-            className={`h-10 shrink-0 rounded-lg px-3 text-sm font-medium ${
+            className={`h-11 shrink-0 rounded-lg px-3 text-sm font-medium ${
               photo.is_featured ? 'bg-fuchsia text-white' : 'bg-rose/20'
             }`}
           >
