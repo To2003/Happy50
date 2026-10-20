@@ -138,6 +138,12 @@ export default function MisionesPage() {
           </div>
         </PageHeader>
 
+        {missions.length === 0 && (
+          <EmptyState icon="target">
+            <p className="text-base text-ink/70">Todavía no hay misiones. Volvé en un rato.</p>
+          </EmptyState>
+        )}
+
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {missions.map((mission, index) => {
             const completion = completions.get(mission.id)
