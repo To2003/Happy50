@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Icon } from '@/components/Icon'
 import { createGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
 
 function EntrarForm() {
@@ -74,8 +75,13 @@ function EntrarForm() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col justify-center gap-8 px-6 py-10">
-      <h1 className="animate-enter text-balance font-display text-4xl leading-tight text-ink">¿Cómo te llamás?</h1>
+    <main className="flex min-h-svh flex-col justify-center gap-8 px-6 py-12">
+      <div className="flex animate-enter flex-col gap-6">
+        <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">
+          ¿Cómo te llamás?
+        </h1>
+        <div className="scallop-edge" />
+      </div>
 
       <form onSubmit={handleSubmit} className="flex animate-enter flex-col gap-8 [animation-delay:60ms]">
         <input
@@ -87,12 +93,12 @@ function EntrarForm() {
           onChange={(event) => setName(event.target.value)}
           placeholder="Tu nombre"
           autoFocus
-          className="h-14 rounded-2xl border border-rose bg-surface px-4 text-lg text-ink shadow-soft outline-none placeholder:text-ink/70 focus:ring-2 focus:ring-fuchsia"
+          className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-lg text-ink outline-none placeholder:text-ink/70 focus:border-fuchsia focus:ring-1 focus:ring-fuchsia"
         />
 
         {!tableFromQr && (
           <div className="flex flex-col gap-3">
-            <p className="text-lg font-bold text-ink">¿En qué mesa estás?</p>
+            <p className="font-display text-2xl font-semibold text-ink">¿En qué mesa estás?</p>
             {mesaCode && (
               <p className="text-base text-ink/70">
                 No encontramos esa mesa, elegí la tuya de la lista.
@@ -104,13 +110,15 @@ function EntrarForm() {
                   key={table.id}
                   type="button"
                   onClick={() => setSelectedTableId(table.id)}
-                  className={`h-14 rounded-2xl text-lg font-bold ${
+                  aria-pressed={selectedTableId === table.id}
+                  className={`flex h-14 items-center justify-center gap-1.5 rounded-2xl px-2 text-base font-semibold ${
                     selectedTableId === table.id
-                      ? 'bg-fuchsia text-white shadow-soft'
-                      : 'border-2 border-rose bg-surface text-ink active:bg-rose/20'
+                      ? 'bg-fuchsia text-white'
+                      : 'border border-ink/20 bg-surface text-ink'
                   }`}
                 >
-                  {table.label ?? table.code}
+                  {selectedTableId === table.id && <Icon name="check" className="h-4 w-4 shrink-0" />}
+                  <span className="truncate">{table.label ?? table.code}</span>
                 </button>
               ))}
             </div>
@@ -122,7 +130,7 @@ function EntrarForm() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="h-16 rounded-full bg-fuchsia text-xl font-bold text-white shadow-soft active:opacity-90 disabled:opacity-40"
+          className="h-16 rounded-full bg-fuchsia text-lg font-semibold text-white shadow-soft disabled:opacity-40"
         >
           {loading ? 'Un segundo...' : 'Sumate'}
         </button>
