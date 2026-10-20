@@ -52,7 +52,7 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/70 p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center overscroll-contain bg-ink/70 p-4 sm:items-center"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}

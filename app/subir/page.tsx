@@ -386,6 +386,7 @@ function SubirScreen() {
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
                 aria-label="Epígrafe (opcional)"
+                autoComplete="off"
               />
 
               {missions.length > 0 && (
