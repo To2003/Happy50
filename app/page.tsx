@@ -35,7 +35,7 @@ function Bienvenida() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6 text-center">
-      <h1 className="animate-enter font-display text-6xl leading-none text-fuchsia">50 años</h1>
+      <h1 className="text-balance animate-enter font-display text-6xl leading-none text-fuchsia">50 años</h1>
       <p className="max-w-xs animate-enter text-lg text-ink/80 [animation-delay:60ms]">
         Sumate a la fiesta y compartí tus fotos de la noche.
       </p>

@@ -17,14 +17,17 @@ Referencia corta de tokens y reglas visuales. Los valores viven en
   secundario `border-2 border-rose bg-surface`. Mínimo `h-12`.
 - Tarjetas, inputs y miniaturas: `rounded-2xl`; misiones y diálogos `rounded-3xl`.
 - Sombras: `shadow-soft` (reposo) y `shadow-lift` (diálogos, elevado).
-- Títulos: `font-display` (Lilita). H1 `text-3xl`/`4xl`, H2 `text-2xl`.
-  Cuerpo `text-base` mínimo.
+- Títulos de invitado: `font-display` (Lilita) + `text-balance`. H1 `text-3xl`
+  (`4xl` heros), H2 `text-2xl`; el resto Nunito, `text-base` mínimo.
+- Contraste AA: texto secundario `text-ink/70` mínimo sobre crema/surface
+  (`/80` sobre `bg-rose/40`); placeholders también `/70`. Nunca `/60` o menos.
+- Táctil: invitado `h-12`+, admin `h-11` (44px) mínimo.
+- Vacíos y errores de invitado: `<EmptyState>` (tarjeta con festón).
 - Gesto de marca: `.scallop-edge`, una vez por pantalla entre hero y contenido.
 
 ## Movimiento
-- Solo `transform` y `opacity`. UI en 150-400 ms (`duration-150`, `200`,
-  `250`, `400`), curva `ease-out` = `cubic-bezier(0.23, 1, 0.32, 1)`.
-- Duración por defecto de `transition`: 200 ms.
+- Solo `transform` y `opacity`. UI en 150-400 ms (default 200 ms), curva
+  `ease-out` = `cubic-bezier(0.23, 1, 0.32, 1)`.
 - Press: botones `scale(0.97)` al tocar (global en `globals.css`); links con
   forma de botón llevan la clase `press`.
 - Entradas: `animate-enter` (aparecer + subir 8px), `animate-page` (al

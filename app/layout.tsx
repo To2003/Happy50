@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { Lilita_One, Nunito } from 'next/font/google'
 import './globals.css'
@@ -19,6 +19,10 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: '50 años',
   description: 'Álbum colaborativo en vivo del cumpleaños',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#FBEDE7',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

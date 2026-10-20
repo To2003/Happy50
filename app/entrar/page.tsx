@@ -75,16 +75,19 @@ function EntrarForm() {
 
   return (
     <main className="flex min-h-screen flex-col justify-center gap-8 px-6 py-10">
-      <h1 className="animate-enter font-display text-4xl leading-tight text-ink">¿Cómo te llamás?</h1>
+      <h1 className="animate-enter text-balance font-display text-4xl leading-tight text-ink">¿Cómo te llamás?</h1>
 
       <form onSubmit={handleSubmit} className="flex animate-enter flex-col gap-8 [animation-delay:60ms]">
         <input
           type="text"
+          name="name"
+          autoComplete="given-name"
+          aria-label="Tu nombre"
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="Tu nombre"
           autoFocus
-          className="h-14 rounded-2xl border border-rose bg-surface px-4 text-lg text-ink shadow-soft outline-none placeholder:text-ink/50 focus:ring-2 focus:ring-fuchsia"
+          className="h-14 rounded-2xl border border-rose bg-surface px-4 text-lg text-ink shadow-soft outline-none placeholder:text-ink/70 focus:ring-2 focus:ring-fuchsia"
         />
 
         {!tableFromQr && (

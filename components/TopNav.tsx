@@ -34,7 +34,7 @@ export function TopNav() {
             href={item.href}
             aria-current={active ? 'page' : undefined}
             className={`press flex flex-1 flex-col items-center gap-1 py-3 text-base font-bold ${
-              active ? 'text-fuchsia' : 'text-ink/60'
+              active ? 'text-fuchsia' : 'text-ink/70'
             }`}
           >
             <span className="text-2xl" aria-hidden>

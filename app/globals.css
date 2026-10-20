@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: light;
+  touch-action: manipulation;
   accent-color: theme('colors.fuchsia');
   caret-color: theme('colors.fuchsia');
   -webkit-tap-highlight-color: transparent;

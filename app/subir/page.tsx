@@ -238,7 +238,7 @@ function SubirScreen() {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
           <div className="relative flex flex-col gap-1">
-            <h1 className="animate-enter font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
+            <h1 className="animate-enter text-balance font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
             <p className="animate-enter text-base text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
@@ -303,7 +303,8 @@ function SubirScreen() {
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-rose bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/40 focus:ring-2 focus:ring-fuchsia"
+                aria-label="Epígrafe (opcional)"
+                className="h-14 rounded-2xl border border-rose bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:ring-2 focus:ring-fuchsia"
               />
 
               {missions.length > 0 && (
@@ -356,7 +357,7 @@ function SubirScreen() {
           )}
 
           {queue.length > 0 && (
-            <ul className="flex flex-col gap-2">
+            <ul aria-live="polite" className="flex flex-col gap-2">
               {queue.map((item) => (
                 <QueueRow key={item.id} item={item} onRetry={retryItem} />
               ))}
