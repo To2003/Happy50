@@ -26,7 +26,7 @@ export function AdminTable({ head, children }: { head: ReactNode[]; children: Re
   )
 }
 
-// Carga de una tab: filas grises con brillo en lugar de "Cargando...".
+// Carga de una tab: filas grises con brillo en lugar de "Cargando…".
 export function AdminSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-2">

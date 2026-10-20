@@ -180,7 +180,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
     return (
       <div className="flex flex-col gap-4 px-4 pt-6" aria-busy="true">
         <span className="sr-only">Cargando…</span>
-        <Skeleton className="h-8 w-2/3 rounded-lg" />
+        <Skeleton className="h-8 w-2/3 rounded-xl" />
         <div className="grid grid-cols-3 gap-1.5">
           <Skeleton className="col-span-2 row-span-2 aspect-square rounded-xl" />
           {Array.from({ length: 5 }, (_, i) => (

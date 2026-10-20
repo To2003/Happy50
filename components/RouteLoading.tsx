@@ -7,7 +7,7 @@ export function RouteLoading() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-4 pb-12 pt-10" aria-busy="true">
       <span className="sr-only">Cargando…</span>
       <div className="flex flex-col gap-6">
-        <Skeleton className="h-9 w-1/2 rounded-lg" />
+        <Skeleton className="h-9 w-1/2 rounded-xl" />
         <div className="scallop-edge" />
       </div>
       <div className="grid grid-cols-3 gap-1.5">
