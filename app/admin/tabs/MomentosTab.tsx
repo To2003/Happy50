@@ -153,7 +153,6 @@ export function MomentosTab() {
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-xl font-semibold">Momentos</h2>
         {milestones.length === 0 ? (
           <EmptyState icon="clock">
             <p className="text-base text-ink/70">Todavía no hay momentos cargados.</p>
@@ -162,12 +161,12 @@ export function MomentosTab() {
           <AdminTable head={['Momento', 'Arrancó', '']}>
             {milestones.map((milestone) => (
               <tr key={milestone.id}>
-                <td className="px-3 py-2 text-base font-semibold text-ink">
+                <td className="px-3 py-2 text-base font-semibold text-ink max-sm:w-full">
                   {milestone.emoji} {milestone.name}
                   {milestone.is_prologue && <span className="ml-2 text-sm font-normal text-ink/70">(prólogo)</span>}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums text-ink/70">{formatTime(milestone.started_at)}</td>
-                <td className="px-3 py-2 text-right">
+                <td className="px-3 py-2 text-right max-sm:ml-auto">
                   {!milestone.is_prologue && (
                     <Button size="sm" icon="play" onClick={() => setToStart(milestone)}>
                       Arrancar ahora
@@ -256,7 +255,7 @@ export function MomentosTab() {
                     src={storage.getPublicUrl(photo.storage_path)}
                     alt=""
                     loading="lazy"
-                    className="h-14 w-14 rounded-xl object-cover"
+                    className="h-14 w-14 min-w-14 max-w-none rounded-xl object-cover"
                   />
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums text-ink/70">

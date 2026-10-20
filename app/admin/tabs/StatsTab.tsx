@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/Icon'
 
 function hourLabel(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit' })
+  return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', hourCycle: 'h23' })
 }
 
 function StatTile({ label, value, detail }: { label: string; value: string; detail?: string }) {

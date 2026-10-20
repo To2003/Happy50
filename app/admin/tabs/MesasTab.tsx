@@ -148,7 +148,7 @@ export function MesasTab() {
             <tr key={table.id}>
               <td className="px-3 py-2 text-base font-semibold tabular-nums text-ink">Mesa {table.code}</td>
               <td className="px-3 py-2 text-base text-ink/80">{table.label ?? '—'}</td>
-              <td className="px-3 py-2 text-right">
+              <td className="px-3 py-2 text-right max-sm:ml-auto">
                 <Button variant="ghost" size="sm" icon="trash" onClick={() => setToDelete(table)} className="text-danger">
                   Borrar
                 </Button>

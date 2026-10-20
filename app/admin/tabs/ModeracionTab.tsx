@@ -101,10 +101,10 @@ export function ModeracionTab() {
                 src={storage.getPublicUrl(photo.thumb_path)}
                 alt=""
                 loading="lazy"
-                className={`h-14 w-14 rounded-xl object-cover ${photo.status === 'hidden' ? 'opacity-40' : ''}`}
+                className={`h-14 w-14 min-w-14 max-w-none rounded-xl object-cover ${photo.status === 'hidden' ? 'opacity-40' : ''}`}
               />
             </td>
-            <td className="min-w-[10rem] px-3 py-2">
+            <td className="min-w-[10rem] px-3 py-2 max-sm:min-w-0 max-sm:flex-1 max-sm:basis-[calc(100%-5rem)]">
               <p className="font-semibold text-ink">{photo.guest_name ?? 'Invitado'}</p>
               <p className="tabular-nums text-ink/70">{new Date(photo.taken_at).toLocaleString('es-AR')}</p>
               {photo.caption && <p className="line-clamp-1 text-ink/70">{photo.caption}</p>}

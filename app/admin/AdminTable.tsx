@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 
 // Tabla del admin: encabezado fijo dentro de su propio scroll, para que las
-// columnas sigan a la vista en listas largas (también en el celu).
+// columnas sigan a la vista en listas largas. En el celu cada fila pasa a ser
+// un bloque que se acomoda solo (sin encabezado ni scroll horizontal).
 export function AdminTable({ head, children }: { head: ReactNode[]; children: ReactNode }) {
   return (
     <div className="max-h-[65vh] overflow-auto rounded-2xl border border-rose bg-surface">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
+      <table className="w-full border-collapse text-left text-sm max-sm:block max-sm:[&_tbody]:block max-sm:[&_td]:p-0 max-sm:[&_tr]:flex max-sm:[&_tr]:flex-wrap max-sm:[&_tr]:items-center max-sm:[&_tr]:gap-x-3 max-sm:[&_tr]:gap-y-2 max-sm:[&_tr]:p-3">
+        <thead className="max-sm:hidden">
           <tr>
             {head.map((label, i) => (
               <th

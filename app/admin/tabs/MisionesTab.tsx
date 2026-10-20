@@ -153,7 +153,7 @@ export function MisionesTab() {
         <AdminTable head={['Misión', 'Estado', '']}>
           {missions.map((mission) => (
             <tr key={mission.id}>
-              <td className="px-3 py-2 text-base text-ink">
+              <td className="px-3 py-2 text-base text-ink max-sm:w-full">
                 {mission.emoji} {mission.title}
               </td>
               <td className="px-3 py-2">
@@ -169,7 +169,7 @@ export function MisionesTab() {
                   {mission.active ? 'Activa' : 'Inactiva'}
                 </Button>
               </td>
-              <td className="px-3 py-2 text-right">
+              <td className="px-3 py-2 text-right max-sm:ml-auto">
                 <Button variant="ghost" size="sm" icon="trash" onClick={() => setToDelete(mission)} className="text-danger">
                   Borrar
                 </Button>
