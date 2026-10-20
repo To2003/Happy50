@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { runPipeline } from '@/lib/pipeline/runPipeline'
-import { addItem, hydrateQueue, updateItem, type QueueItem } from '@/lib/uploadQueue'
+import { addItem, hydrateQueue, removeItem, updateItem, type QueueItem } from '@/lib/uploadQueue'
 import { startUploadProcessor } from '@/lib/uploadProcessor'
 import { useUploadQueue } from '@/lib/useUploadQueue'
 import { usePhotoCount } from '@/lib/usePhotoCount'
@@ -67,7 +67,15 @@ const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: stri
   failed: { name: 'alert', className: 'text-danger' },
 }
 
-function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
+function QueueRow({
+  item,
+  onRetry,
+  onDiscard,
+}: {
+  item: QueueItem
+  onRetry: (id: string) => void
+  onDiscard: (id: string) => void
+}) {
   const icon = STATUS_ICON[item.status]
   const progress =
     item.status === 'done' ? 100 : item.status === 'uploading' ? (item.progressPercent ?? 0) : 0
@@ -104,9 +112,14 @@ function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) =>
           )}
         </div>
         {item.status === 'failed' && (
-          <Button size="sm" icon="retry" onClick={() => onRetry(item.id)} className="shrink-0">
-            Reintentar
-          </Button>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <Button size="sm" icon="retry" onClick={() => onRetry(item.id)}>
+              Reintentar
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => onDiscard(item.id)} className="text-ink/70">
+              Descartar
+            </Button>
+          </div>
         )}
       </Card>
     </li>
@@ -411,7 +424,7 @@ function SubirScreen() {
           {queue.length > 0 && (
             <ul aria-live="polite" className="flex flex-col gap-3">
               {queue.map((item) => (
-                <QueueRow key={item.id} item={item} onRetry={retryItem} />
+                <QueueRow key={item.id} item={item} onRetry={retryItem} onDiscard={(id) => void removeItem(id)} />
               ))}
             </ul>
           )}
