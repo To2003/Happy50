@@ -70,6 +70,13 @@ export async function addItem(item: QueueItem): Promise<void> {
   notify()
 }
 
+// Descartar una foto que falló: sale de la cola y de IndexedDB.
+export async function removeItem(id: string): Promise<void> {
+  items = items.filter((item) => item.id !== id)
+  await persist()
+  notify()
+}
+
 export async function updateItem(id: string, patch: Partial<QueueItem>): Promise<void> {
   items = items.map((item) => (item.id === id ? { ...item, ...patch } : item))
   await persist()

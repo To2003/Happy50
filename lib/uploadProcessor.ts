@@ -1,15 +1,26 @@
 import { storage } from '@/lib/storage'
 import { insertPhoto } from '@/lib/photos'
 import { getSnapshot, subscribe, updateItem, type QueueItem } from '@/lib/uploadQueue'
+import { retryDelayMs } from '@/lib/uploadErrors'
 
-// SPEC.md sección 8: 3 intentos, backoff exponencial.
+// SPEC.md sección 8: 3 intentos, backoff exponencial. Una foto por vez: es el
+// tope de subidas simultáneas (con wifi malo, dos a la vez se pisan).
 const MAX_ATTEMPTS = 3
-const RETRY_BASE_DELAY_MS = 1000
 
 let processing = false
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false
+}
+
+// Sin conexión no se intenta (ni se gasta un intento): se espera a que vuelva.
+function waitForOnline(): Promise<void> {
+  if (!isOffline()) return Promise.resolve()
+  return new Promise((resolve) => window.addEventListener('online', () => resolve(), { once: true }))
 }
 
 async function uploadOnce(item: QueueItem): Promise<void> {
@@ -44,10 +55,16 @@ async function uploadOnce(item: QueueItem): Promise<void> {
 
 async function uploadWithRetries(item: QueueItem): Promise<void> {
   for (let attempt = item.attempts; attempt < MAX_ATTEMPTS; attempt++) {
+    await waitForOnline()
     try {
       await uploadOnce(item)
       return
     } catch (err) {
+      // Se cortó la conexión en el medio: no cuenta como intento fallido.
+      if (isOffline()) {
+        attempt--
+        continue
+      }
       const nextAttempt = attempt + 1
       await updateItem(item.id, { attempts: nextAttempt })
 
@@ -55,7 +72,7 @@ async function uploadWithRetries(item: QueueItem): Promise<void> {
         throw err
       }
 
-      await delay(RETRY_BASE_DELAY_MS * 2 ** attempt)
+      await delay(retryDelayMs(attempt))
     }
   }
 }
@@ -68,7 +85,9 @@ async function processNext(): Promise<boolean> {
 
   try {
     await uploadWithRetries({ ...next })
-    await updateItem(next.id, { status: 'done', progressPercent: 100 })
+    // La foto grande ya está en Storage: se suelta de IndexedDB para no llenar
+    // el celu. La miniatura queda para mostrar la fila en la cola.
+    await updateItem(next.id, { status: 'done', progressPercent: 100, displayBlob: undefined })
   } catch (err) {
     await updateItem(next.id, {
       status: 'failed',
