@@ -16,6 +16,20 @@ async function requireAdmin(): Promise<void> {
   }
 }
 
+// Las mutaciones devuelven el error como dato en vez de tirarlo: en producción
+// Next oculta el mensaje de los errores de Server Actions y el admin vería un
+// texto técnico en inglés. Las lecturas siguen tirando (el cliente muestra un
+// mensaje genérico).
+export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string }
+
+async function runAction<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
+  try {
+    return { ok: true, data: await fn() }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Algo salió mal, probá de nuevo.' }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
@@ -43,15 +57,17 @@ export async function getMilestonesAction(): Promise<Milestone[]> {
   return data
 }
 
-export async function startMilestoneAction(milestoneId: string): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase
-    .from('milestones')
-    .update({ started_at: new Date().toISOString() })
-    .eq('id', milestoneId)
-  if (error) throw new Error('No se pudo arrancar el momento.')
-  revalidatePath('/admin')
+export async function startMilestoneAction(milestoneId: string): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase
+      .from('milestones')
+      .update({ started_at: new Date().toISOString() })
+      .eq('id', milestoneId)
+    if (error) throw new Error('No se pudo arrancar el momento.')
+    revalidatePath('/admin')
+  })
 }
 
 interface RecentPhotoForReassign {
@@ -77,33 +93,37 @@ export async function getRecentPhotosForReassignAction(): Promise<RecentPhotoFor
 export async function reassignPhotoMilestoneAction(
   photoId: string,
   milestoneId: string | null,
-): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase
-    .from('photos')
-    .update({ milestone_override_id: milestoneId })
-    .eq('id', photoId)
-  if (error) throw new Error('No se pudo reasignar la foto.')
-  revalidatePath('/admin')
+): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase
+      .from('photos')
+      .update({ milestone_override_id: milestoneId })
+      .eq('id', photoId)
+    if (error) throw new Error('No se pudo reasignar la foto.')
+    revalidatePath('/admin')
+  })
 }
 
 export async function reassignByTimeRangeAction(
   fromISO: string,
   toISO: string,
   milestoneId: string,
-): Promise<{ count: number }> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { data, error } = await supabase
-    .from('photos')
-    .update({ milestone_override_id: milestoneId })
-    .gte('taken_at', fromISO)
-    .lte('taken_at', toISO)
-    .select('id')
-  if (error) throw new Error('No se pudo reasignar el rango.')
-  revalidatePath('/admin')
-  return { count: data?.length ?? 0 }
+): Promise<ActionResult<{ count: number }>> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { data, error } = await supabase
+      .from('photos')
+      .update({ milestone_override_id: milestoneId })
+      .gte('taken_at', fromISO)
+      .lte('taken_at', toISO)
+      .select('id')
+    if (error) throw new Error('No se pudo reasignar el rango.')
+    revalidatePath('/admin')
+    return { count: data?.length ?? 0 }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -150,23 +170,27 @@ export async function getRecentPhotosForModerationAction(): Promise<ModerationPh
   }))
 }
 
-export async function setPhotoHiddenAction(photoId: string, hidden: boolean): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase
-    .from('photos')
-    .update({ status: hidden ? 'hidden' : 'visible' })
-    .eq('id', photoId)
-  if (error) throw new Error('No se pudo cambiar la visibilidad.')
-  revalidatePath('/admin')
+export async function setPhotoHiddenAction(photoId: string, hidden: boolean): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase
+      .from('photos')
+      .update({ status: hidden ? 'hidden' : 'visible' })
+      .eq('id', photoId)
+    if (error) throw new Error('No se pudo cambiar la visibilidad.')
+    revalidatePath('/admin')
+  })
 }
 
-export async function setPhotoFeaturedAction(photoId: string, featured: boolean): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase.from('photos').update({ is_featured: featured }).eq('id', photoId)
-  if (error) throw new Error('No se pudo destacar la foto.')
-  revalidatePath('/admin')
+export async function setPhotoFeaturedAction(photoId: string, featured: boolean): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase.from('photos').update({ is_featured: featured }).eq('id', photoId)
+    if (error) throw new Error('No se pudo destacar la foto.')
+    revalidatePath('/admin')
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -185,30 +209,36 @@ export async function createMissionAction(input: {
   title: string
   emoji: string | null
   sortOrder: number
-}): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase
-    .from('missions')
-    .insert({ title: input.title, emoji: input.emoji, sort_order: input.sortOrder })
-  if (error) throw new Error('No se pudo crear la misión (¿título repetido?).')
-  revalidatePath('/admin')
+}): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase
+      .from('missions')
+      .insert({ title: input.title, emoji: input.emoji, sort_order: input.sortOrder })
+    if (error) throw new Error('No se pudo crear la misión (¿título repetido?).')
+    revalidatePath('/admin')
+  })
 }
 
-export async function setMissionActiveAction(missionId: string, active: boolean): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase.from('missions').update({ active }).eq('id', missionId)
-  if (error) throw new Error('No se pudo actualizar la misión.')
-  revalidatePath('/admin')
+export async function setMissionActiveAction(missionId: string, active: boolean): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase.from('missions').update({ active }).eq('id', missionId)
+    if (error) throw new Error('No se pudo actualizar la misión.')
+    revalidatePath('/admin')
+  })
 }
 
-export async function deleteMissionAction(missionId: string): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase.from('missions').delete().eq('id', missionId)
-  if (error) throw new Error('No se pudo borrar la misión.')
-  revalidatePath('/admin')
+export async function deleteMissionAction(missionId: string): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase.from('missions').delete().eq('id', missionId)
+    if (error) throw new Error('No se pudo borrar la misión.')
+    revalidatePath('/admin')
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -227,24 +257,28 @@ export async function createTableAction(input: {
   code: string
   label: string | null
   sortOrder: number
-}): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase
-    .from('party_tables')
-    .insert({ code: input.code, label: input.label, sort_order: input.sortOrder })
-  if (error) throw new Error('No se pudo crear la mesa (¿código repetido?).')
-  revalidatePath('/admin')
+}): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase
+      .from('party_tables')
+      .insert({ code: input.code, label: input.label, sort_order: input.sortOrder })
+    if (error) throw new Error('No se pudo crear la mesa (¿código repetido?).')
+    revalidatePath('/admin')
+  })
 }
 
-export async function deleteTableAction(tableId: string): Promise<void> {
-  await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { error } = await supabase.from('party_tables').delete().eq('id', tableId)
-  if (error) {
-    throw new Error('No se pudo borrar la mesa (¿todavía tiene invitados asignados?).')
-  }
-  revalidatePath('/admin')
+export async function deleteTableAction(tableId: string): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin()
+    const supabase = getAdminSupabaseClient()
+    const { error } = await supabase.from('party_tables').delete().eq('id', tableId)
+    if (error) {
+      throw new Error('No se pudo borrar la mesa (¿todavía tiene invitados asignados?).')
+    }
+    revalidatePath('/admin')
+  })
 }
 
 // ---------------------------------------------------------------------------

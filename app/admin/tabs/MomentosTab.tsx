@@ -8,6 +8,7 @@ import {
   reassignPhotoMilestoneAction,
   startMilestoneAction,
 } from '../actions'
+import { unwrap } from '../unwrap'
 import { storage } from '@/lib/storage'
 import type { Database } from '@/lib/database.types'
 
@@ -64,7 +65,7 @@ export function MomentosTab() {
 
   async function handleStart(milestoneId: string) {
     try {
-      await startMilestoneAction(milestoneId)
+      unwrap(await startMilestoneAction(milestoneId))
       await load()
     } catch {
       setRangeMessage('No se pudo arrancar el momento, probá de nuevo.')
@@ -73,7 +74,7 @@ export function MomentosTab() {
 
   async function handleReassign(photoId: string, milestoneId: string) {
     try {
-      await reassignPhotoMilestoneAction(photoId, milestoneId || null)
+      unwrap(await reassignPhotoMilestoneAction(photoId, milestoneId || null))
       await load()
     } catch {
       setRangeMessage('No se pudo reasignar la foto, probá de nuevo.')
@@ -84,10 +85,12 @@ export function MomentosTab() {
     if (!rangeFrom || !rangeTo || !rangeMilestone) return
     setRangeMessage(null)
     try {
-      const { count } = await reassignByTimeRangeAction(
-        new Date(rangeFrom).toISOString(),
-        new Date(rangeTo).toISOString(),
-        rangeMilestone,
+      const { count } = unwrap(
+        await reassignByTimeRangeAction(
+          new Date(rangeFrom).toISOString(),
+          new Date(rangeTo).toISOString(),
+          rangeMilestone,
+        ),
       )
       setRangeMessage(`Reasignadas ${count} fotos.`)
       await load()

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getRecentPhotosForModerationAction, setPhotoFeaturedAction, setPhotoHiddenAction } from '../actions'
+import { unwrap } from '../unwrap'
 import { storage } from '@/lib/storage'
 
 interface ModerationPhoto {
@@ -38,7 +39,7 @@ export function ModeracionTab() {
 
   async function toggleHidden(photo: ModerationPhoto) {
     try {
-      await setPhotoHiddenAction(photo.id, photo.status !== 'hidden')
+      unwrap(await setPhotoHiddenAction(photo.id, photo.status !== 'hidden'))
       await load()
     } catch {
       setError('No se pudo cambiar la visibilidad, probá de nuevo.')
@@ -47,7 +48,7 @@ export function ModeracionTab() {
 
   async function toggleFeatured(photo: ModerationPhoto) {
     try {
-      await setPhotoFeaturedAction(photo.id, !photo.is_featured)
+      unwrap(await setPhotoFeaturedAction(photo.id, !photo.is_featured))
       await load()
     } catch {
       setError('No se pudo destacar la foto, probá de nuevo.')

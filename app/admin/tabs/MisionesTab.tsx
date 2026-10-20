@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createMissionAction, deleteMissionAction, getMissionsAction, setMissionActiveAction } from '../actions'
+import { unwrap } from '../unwrap'
 import type { Database } from '@/lib/database.types'
 
 type Mission = Database['public']['Tables']['missions']['Row']
@@ -33,11 +34,13 @@ export function MisionesTab() {
     if (!title.trim()) return
     setError(null)
     try {
-      await createMissionAction({
-        title: title.trim(),
-        emoji: emoji.trim() || null,
-        sortOrder: missions.length + 1,
-      })
+      unwrap(
+        await createMissionAction({
+          title: title.trim(),
+          emoji: emoji.trim() || null,
+          sortOrder: missions.length + 1,
+        }),
+      )
       setTitle('')
       setEmoji('')
       await load()
@@ -48,7 +51,7 @@ export function MisionesTab() {
 
   async function toggleActive(mission: Mission) {
     try {
-      await setMissionActiveAction(mission.id, !mission.active)
+      unwrap(await setMissionActiveAction(mission.id, !mission.active))
       await load()
     } catch {
       setError('No se pudo actualizar la misión, probá de nuevo.')
@@ -57,7 +60,7 @@ export function MisionesTab() {
 
   async function handleDelete(missionId: string) {
     try {
-      await deleteMissionAction(missionId)
+      unwrap(await deleteMissionAction(missionId))
       await load()
     } catch {
       setError('No se pudo borrar la misión, probá de nuevo.')

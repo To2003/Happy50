@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createTableAction, deleteTableAction, getTablesAction } from '../actions'
+import { unwrap } from '../unwrap'
 import type { Database } from '@/lib/database.types'
 
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -33,11 +34,13 @@ export function MesasTab() {
     if (!code.trim()) return
     setError(null)
     try {
-      await createTableAction({
-        code: code.trim(),
-        label: label.trim() || null,
-        sortOrder: tables.length + 1,
-      })
+      unwrap(
+        await createTableAction({
+          code: code.trim(),
+          label: label.trim() || null,
+          sortOrder: tables.length + 1,
+        }),
+      )
       setCode('')
       setLabel('')
       await load()
@@ -49,7 +52,7 @@ export function MesasTab() {
   async function handleDelete(tableId: string) {
     setError(null)
     try {
-      await deleteTableAction(tableId)
+      unwrap(await deleteTableAction(tableId))
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo borrar.')
