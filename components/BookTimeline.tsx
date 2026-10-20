@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type HTMLAttributes } from 'react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/Icon'
@@ -9,6 +9,7 @@ import { useDialogBehavior } from '@/components/Dialog'
 import { Skeleton } from '@/components/Skeleton'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
+import { morphClose, morphOpen } from '@/lib/viewTransition'
 import type { Database } from '@/lib/database.types'
 
 type Milestone = Database['public']['Tables']['milestones']['Row']
@@ -30,6 +31,38 @@ function chapterTitle(milestone: Milestone): string {
     minute: '2-digit',
   })
   return `${milestone.name} — ${time}`
+}
+
+// Cada capítulo aparece al entrar en pantalla (una sola vez). Sin
+// IntersectionObserver se muestra directo; el estado oculto lo pone el JS,
+// así que si el script no corre nada queda escondido.
+function Reveal({ children, className, ...rest }: HTMLAttributes<HTMLElement>) {
+  const ref = useRef<HTMLElement>(null)
+  const [state, setState] = useState<'idle' | 'hidden' | 'shown'>('idle')
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setState('shown')
+          observer.disconnect()
+        } else {
+          setState((current) => (current === 'idle' ? 'hidden' : current))
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section ref={ref} className={`reveal ${state === 'hidden' ? 'reveal-hidden' : ''} ${className ?? ''}`} {...rest}>
+      {children}
+    </section>
+  )
 }
 
 function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
@@ -54,7 +87,7 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
       </div>
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={photo.caption ?? ''} className="max-h-full max-w-full object-contain" />
+        <img src={url} alt={photo.caption ?? ''} className="vt-foto max-h-full max-w-full object-contain" />
       </div>
       <div className="flex flex-col gap-1 p-4">
         {photo.caption && <p>{photo.caption}</p>}
@@ -80,6 +113,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewerPhoto, setViewerPhoto] = useState<BookPhoto | null>(null)
+  const openedFrom = useRef<HTMLElement | null>(null)
 
   async function load() {
     setLoading(true)
@@ -201,7 +235,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
       {chaptersWithPhotos.map((milestone) => {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
-          <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
+          <Reveal key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
             <h2 className="text-balance font-display text-3xl font-semibold leading-tight text-ink">
               {chapterTitle(milestone)}
             </h2>
@@ -211,7 +245,11 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                 <button
                   key={photo.id}
                   type="button"
-                  onClick={() => setViewerPhoto(photo)}
+                  onClick={(event) => {
+                    const el = event.currentTarget
+                    openedFrom.current = el
+                    void morphOpen(el, storage.getPublicUrl(photo.storage_path), () => setViewerPhoto(photo))
+                  }}
                   className={`relative aspect-square overflow-hidden rounded-xl ${
                     index === 0 ? 'col-span-2 row-span-2' : ''
                   }`}
@@ -228,7 +266,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                 </button>
               ))}
             </div>
-          </section>
+          </Reveal>
         )
       })}
 
@@ -249,7 +287,12 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         </section>
       )}
 
-      {viewerPhoto && <Viewer photo={viewerPhoto} onClose={() => setViewerPhoto(null)} />}
+      {viewerPhoto && (
+        <Viewer
+          photo={viewerPhoto}
+          onClose={() => morphClose(openedFrom.current, () => setViewerPhoto(null))}
+        />
+      )}
     </div>
   )
 }

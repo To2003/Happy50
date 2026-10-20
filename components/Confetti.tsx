@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 
-const COLORS = ['#C2255C', '#C89B3C', '#D9A7AC', '#FFFBF8']
-const PIECE_COUNT = 18
+// Fucsia y dorado de la paleta, más un rosa claro para dar aire.
+const COLORS = ['#A3124A', '#A88232', '#E3C4C3']
+const PIECE_COUNT = 16
 
 interface Piece {
   id: number
@@ -25,14 +26,14 @@ export function Confetti({ trigger }: { trigger: number }) {
     const next: Piece[] = Array.from({ length: PIECE_COUNT }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      color: COLORS[i % COLORS.length] ?? '#C2255C',
-      delay: Math.random() * 0.15,
-      duration: 1.1 + Math.random() * 0.6,
+      color: COLORS[i % COLORS.length] ?? '#A3124A',
+      delay: Math.random() * 0.12,
+      duration: 0.9 + Math.random() * 0.4,
       rotate: Math.random() * 360,
     }))
     setPieces(next)
 
-    const timeout = setTimeout(() => setPieces([]), 2000)
+    const timeout = setTimeout(() => setPieces([]), 1600)
     return () => clearTimeout(timeout)
   }, [trigger])
 
@@ -43,11 +44,11 @@ export function Confetti({ trigger }: { trigger: number }) {
       {pieces.map((piece) => (
         <span
           key={piece.id}
-          className="absolute top-0 h-3 w-2 rounded-sm"
+          className="absolute top-0 h-2.5 w-1 rounded-full"
           style={{
             left: `${piece.left}%`,
             backgroundColor: piece.color,
-            animation: `confetti-fall ${piece.duration}s ease-in ${piece.delay}s forwards`,
+            animation: `confetti-fall ${piece.duration}s cubic-bezier(0.33, 0, 0.67, 1) ${piece.delay}s both`,
             transform: `rotate(${piece.rotate}deg)`,
           }}
         />

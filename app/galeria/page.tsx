@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
+import { morphClose, morphOpen } from '@/lib/viewTransition'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -45,14 +46,14 @@ function GridThumb({
   stagger,
 }: {
   photo: Photo
-  onOpen: () => void
+  onOpen: (el: HTMLElement) => void
   stagger: StaggerProps
 }) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={(event) => onOpen(event.currentTarget)}
       style={stagger.style}
       onAnimationEnd={stagger.onAnimationEnd}
       className={`relative aspect-square overflow-hidden rounded-xl ${stagger.className ?? ''}`}
@@ -170,7 +171,7 @@ function Viewer({
 
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={photo.caption ?? ''} className="max-h-full max-w-full object-contain" />
+        <img src={url} alt={photo.caption ?? ''} className="vt-foto max-h-full max-w-full object-contain" />
       </div>
 
       <div className="flex items-center gap-4 p-4">
@@ -230,6 +231,8 @@ export default function GaleriaPage() {
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
+  // Miniatura de la que salió el visor: ahí vuelve la transición al cerrar.
+  const openedFrom = useRef<HTMLElement | null>(null)
   const { toast, showToast } = useToast()
 
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -371,7 +374,10 @@ export default function GaleriaPage() {
           <GridThumb
             key={photo.id}
             photo={photo}
-            onOpen={() => setViewerPhoto(photo)}
+            onOpen={(el) => {
+              openedFrom.current = el
+              void morphOpen(el, storage.getPublicUrl(photo.storage_path), () => setViewerPhoto(photo))
+            }}
             stagger={staggerFor(photo.id)}
           />
         ))}
@@ -394,7 +400,7 @@ export default function GaleriaPage() {
         <Viewer
           photo={viewerPhoto}
           guest={guest}
-          onClose={() => setViewerPhoto(null)}
+          onClose={() => morphClose(openedFrom.current, () => setViewerPhoto(null))}
           onDeleted={handleDeleted}
           onError={(message) => showToast(message, 'error')}
         />

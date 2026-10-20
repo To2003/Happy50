@@ -182,9 +182,11 @@ function SubirScreen() {
     if (newlyDone.length === 0) return
     setConfettiTrigger((n) => n + 1)
     showToast(
-      newlyDone.length === 1
-        ? '¡Listo! Tu foto ya está en el álbum'
-        : `¡Listo! Ya están tus ${newlyDone.length} fotos en el álbum`,
+      newlyDone.some((item) => item.missionId)
+        ? '¡Misión cumplida! Tu foto ya está en el álbum'
+        : newlyDone.length === 1
+          ? '¡Listo! Tu foto ya está en el álbum'
+          : `¡Listo! Ya están tus ${newlyDone.length} fotos en el álbum`,
     )
   }, [queue, showToast])
 
@@ -305,7 +307,11 @@ function SubirScreen() {
             <p className="max-w-[34ch] animate-enter text-base leading-snug text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
-            <p className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]">
+            {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
+            <p
+              key={photoCount ?? 'cargando'}
+              className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]"
+            >
               {nightCounterLabel(photoCount)}
             </p>
           </div>
