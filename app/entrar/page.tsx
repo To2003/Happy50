@@ -93,7 +93,7 @@ function EntrarForm() {
           onChange={(event) => setName(event.target.value)}
           placeholder="Tu nombre"
           autoFocus
-          className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-lg text-ink outline-none placeholder:text-ink/70 focus:border-fuchsia focus:ring-1 focus:ring-fuchsia"
+          className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-lg text-ink placeholder:text-ink/70"
         />
 
         {!tableFromQr && (

@@ -333,7 +333,7 @@ function SubirScreen() {
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
                 aria-label="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:border-fuchsia focus:ring-1 focus:ring-fuchsia"
+                className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-base text-ink placeholder:text-ink/70"
               />
 
               {missions.length > 0 && (
