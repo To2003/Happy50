@@ -61,6 +61,70 @@ directo, pero la ruta ya funciona sin cambiar la base.
 - Corazones (hallazgo aparte, ver bloque B del SQL): comparar `photos.hearts`
   con `count(*)` de `hearts` en una foto ajena con votos.
 
+### La clave de servicio no llega al cliente (verificado)
+- `SUPABASE_SERVICE_ROLE_KEY` aparece solo en `lib/supabase/server.ts` (más
+  `.env.local.example` y este archivo). Nunca con prefijo `NEXT_PUBLIC_`.
+- `lib/supabase/server.ts` arranca con `import 'server-only'`: si un Client
+  Component lo importara, el build falla. Lo importan solo
+  `app/admin/actions.ts` (`'use server'`), `app/admin/export/route.ts` y
+  `app/api/photos/[id]/route.ts` (route handlers, siempre servidor).
+- Build con la clave en un valor centinela: 0 apariciones del valor y 0 del
+  nombre de la variable en `.next/static` (lo que se manda al navegador). Como
+  control, la clave anon sí aparece (6 archivos), así que la búsqueda funciona.
+  Los dos archivos de `static/chunks/app/api` son stubs de 225 bytes, iguales
+  al de `/api/health`, sin lógica.
+
+### Qué pasa con el archivo después de un borrado lógico (propuesta, NO implementada)
+**Hoy:** el borrado solo pone `status = 'deleted'`; los archivos
+`display/<id>.jpg` y `thumb/<id>.jpg` quedan en Storage. El bucket `photos` es
+público (`0003_storage.sql`), así que la URL de una foto "borrada" sigue
+abierta para cualquiera que la tenga, sin sesión. La ruta es un UUID (no se
+adivina), pero la tienen quienes la vieron: caché del navegador, `/tv`, el link
+compartido (Web Share manda el archivo y, solo si no puede, la URL) o quien la
+copió. Además las subidas no fijan `cacheControl`, así que el CDN de Supabase
+usa el default de 3600 s: aun borrando el archivo, una copia en caché puede
+servirse hasta una hora más. La app ya no la muestra en ningún lado (galería,
+book, misiones, admin y el manifiesto del book filtran `deleted`).
+
+**Choca con el SPEC:** SPEC §6 dice "nunca se borra el archivo del storage ni
+la fila". Borrar de verdad es una decisión de producto tuya; si va, hay que
+actualizar SPEC §6 y CLAUDE.md.
+
+**Cómo borrarla de verdad (si lo decidís):** en la misma ruta
+`DELETE /api/photos/[id]`, después de verificar la autoría:
+1. Primero el UPDATE a `status = 'deleted'` (fuente de verdad: con eso deja de
+   verse en toda la app).
+2. Después `storage.from('photos').remove([storage_path, thumb_path])` con la
+   clave de servicio (los paths salen de la fila, nunca del cliente).
+3. Si el remove falla, igual responder 200 (para el invitado la foto ya no
+   está) y loguear `[borrar foto] archivo huérfano`. Nunca al revés: borrar el
+   archivo primero deja una fila visible con la imagen rota.
+4. Para los huérfanos, un botón de admin "Limpiar archivos de fotos borradas"
+   (Server Action con clave de servicio) que recorra `status = 'deleted'` y
+   reintente el remove. Sirve también para las fotos ya borradas antes.
+5. Opcional: subir con `cacheControl` corto (por ejemplo 300 s) para que el
+   CDN olvide antes; cuesta más egress.
+
+**Convivencia con un "Deshacer":** hoy la app no tiene "Deshacer" (no lo
+encontré en el código ni en este registro; si lo pediste en otro lado,
+avisame). Si se suma:
+- Restaurar también necesita una ruta de servidor (`POST
+  /api/photos/[id]/restore`) con las mismas verificaciones: token válido,
+  invitado de la sesión, `photo.guest_id` igual al invitado, y además que la
+  foto esté en `deleted`. Desde el cliente no se puede: la fila borrada no es
+  visible por `photos_select_visible`, así que el UPDATE no la encuentra.
+- El borrado del archivo no puede ser inmediato: si el remove corre en el
+  mismo momento, no hay nada que restaurar. Opciones: (a) "Deshacer" solo
+  durante el toast (unos 5 s) y el remove recién al vencer; con wifi malo o si
+  cierran la pestaña, queda huérfano hasta la limpieza del admin; (b) agregar
+  `deleted_at` a `photos` (cambio de esquema) y que la limpieza del admin
+  borre los archivos de las fotos con más de N minutos en `deleted`; el
+  restore solo vale dentro de esa ventana. La (b) es la consistente; la (a)
+  no toca el esquema.
+- Mientras no se borre el archivo, "Deshacer" es trivial: vuelve
+  `status = 'visible'`. Las moderadas por el admin (`hidden`) no se pueden
+  restaurar desde el invitado.
+
 ## Hecho
 
 ### P0: cierre de pantallas
