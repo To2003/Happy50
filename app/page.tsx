@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { findExistingGuest } from '@/lib/guest'
+import { buttonClasses } from '@/components/Button'
 
 function Bienvenida() {
   const router = useRouter()
@@ -48,7 +49,7 @@ function Bienvenida() {
         </p>
         <a
           href={entrarHref}
-          className="press flex h-16 animate-enter items-center justify-center rounded-full bg-fuchsia px-10 text-lg font-semibold text-white shadow-soft [animation-delay:120ms]"
+          className={buttonClasses('primary', 'lg', 'animate-enter [animation-delay:120ms]')}
         >
           Sumate
         </a>

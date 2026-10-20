@@ -2,7 +2,9 @@
 
 import { Suspense, useEffect, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Icon } from '@/components/Icon'
+import { Button } from '@/components/Button'
+import { Chip } from '@/components/Chip'
+import { Input } from '@/components/Field'
 import { createGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
 
 function EntrarForm() {
@@ -84,7 +86,7 @@ function EntrarForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex animate-enter flex-col gap-8 [animation-delay:60ms]">
-        <input
+        <Input
           type="text"
           name="name"
           autoComplete="given-name"
@@ -93,7 +95,7 @@ function EntrarForm() {
           onChange={(event) => setName(event.target.value)}
           placeholder="Tu nombre"
           autoFocus
-          className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-lg text-ink placeholder:text-ink/70"
+          className="text-lg"
         />
 
         {!tableFromQr && (
@@ -106,34 +108,28 @@ function EntrarForm() {
             )}
             <div className="grid grid-cols-3 gap-3">
               {tables.map((table) => (
-                <button
+                <Chip
                   key={table.id}
-                  type="button"
+                  selected={selectedTableId === table.id}
                   onClick={() => setSelectedTableId(table.id)}
-                  aria-pressed={selectedTableId === table.id}
-                  className={`flex h-14 items-center justify-center gap-1.5 rounded-2xl px-2 text-base font-semibold ${
-                    selectedTableId === table.id
-                      ? 'bg-fuchsia text-white'
-                      : 'border border-ink/20 bg-surface text-ink'
-                  }`}
+                  className="h-14 rounded-2xl px-2"
                 >
-                  {selectedTableId === table.id && <Icon name="check" className="h-4 w-4 shrink-0" />}
-                  <span className="truncate">{table.label ?? table.code}</span>
-                </button>
+                  {table.label ?? table.code}
+                </Chip>
               ))}
             </div>
           </div>
         )}
 
-        {error && <p className="text-base text-danger">{error}</p>}
+        {error && (
+          <p role="alert" className="text-base text-danger">
+            {error}
+          </p>
+        )}
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="h-16 rounded-full bg-fuchsia text-lg font-semibold text-white shadow-soft disabled:opacity-40"
-        >
-          {loading ? 'Un segundo...' : 'Sumate'}
-        </button>
+        <Button type="submit" size="lg" disabled={!canSubmit} loading={loading}>
+          {loading ? 'Un segundo…' : 'Sumate'}
+        </Button>
       </form>
     </main>
   )
