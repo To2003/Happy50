@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
+import { Icon } from '@/components/Icon'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import type { Database } from '@/lib/database.types'
@@ -42,9 +43,9 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+          className="flex h-14 w-14 items-center justify-center rounded-full active:bg-white/10"
         >
-          ✕
+          <Icon name="x" className="h-7 w-7" />
         </button>
       </div>
       <div className="flex flex-1 items-center justify-center overflow-hidden">
@@ -53,8 +54,15 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
       </div>
       <div className="flex flex-col gap-1 p-4">
         {photo.caption && <p>{photo.caption}</p>}
-        <p className="text-base text-white/70">
-          {photo.guest_name ? `Por ${photo.guest_name}` : null} {photo.hearts > 0 && `· ❤️ ${photo.hearts}`}
+        <p className="flex items-center gap-1.5 text-base text-white/70">
+          {photo.guest_name ? `Por ${photo.guest_name}` : null}
+          {photo.hearts > 0 && (
+            <>
+              {' · '}
+              <Icon name="heart" filled className="h-4 w-4 text-rose" />
+              <span className="tabular-nums">{photo.hearts}</span>
+            </>
+          )}
         </p>
       </div>
     </div>
@@ -151,19 +159,22 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
   const chaptersWithPhotos = milestones.filter((m) => (photosByMilestone.get(m.id)?.length ?? 0) > 0)
 
   return (
-    <div className="flex flex-col gap-8 pb-16">
+    <div className="flex flex-col gap-12 pb-16">
       {chaptersWithPhotos.length > 0 && (
-        <div className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose/60 bg-bg/95 px-4 py-3 backdrop-blur">
+        <nav
+          aria-label="Capítulos"
+          className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose bg-bg px-4 py-2.5"
+        >
           {chaptersWithPhotos.map((m) => (
             <a
               key={m.id}
               href={`#capitulo-${m.id}`}
-              className="press flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
+              className="press flex h-11 shrink-0 items-center rounded-full border border-ink/20 bg-surface px-4 text-sm font-semibold text-ink"
             >
-              {m.emoji} {m.name}
+              {m.name}
             </a>
           ))}
-        </div>
+        </nav>
       )}
 
       {chaptersWithPhotos.length === 0 && (
@@ -177,17 +188,20 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
       {chaptersWithPhotos.map((milestone) => {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
-          <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-3 px-4">
-            <h2 className="font-display text-2xl text-ink">
-              {milestone.emoji} {chapterTitle(milestone)}
+          <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
+            <h2 className="text-balance font-display text-3xl font-semibold leading-tight text-ink">
+              {chapterTitle(milestone)}
             </h2>
-            <div className="grid grid-cols-3 gap-2">
-              {photos.map((photo) => (
+            {/* La primera foto de cada capítulo va grande, como apertura de página. */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {photos.map((photo, index) => (
                 <button
                   key={photo.id}
                   type="button"
                   onClick={() => setViewerPhoto(photo)}
-                  className="relative aspect-square overflow-hidden rounded-2xl"
+                  className={`relative aspect-square overflow-hidden rounded-xl ${
+                    index === 0 ? 'col-span-2 row-span-2' : ''
+                  }`}
                 >
                   <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -207,13 +221,13 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
       {!tableFilter && tables.length > 0 && (
         <section className="flex flex-col gap-3 px-4">
-          <h2 className="font-display text-2xl text-ink">El book de tu mesa</h2>
+          <h2 className="text-balance font-display text-3xl font-semibold leading-tight text-ink">El book de tu mesa</h2>
           <div className="flex flex-wrap gap-2">
             {tables.map((table) => (
               <Link
                 key={table.id}
                 href={`/book/mesa/${table.code}`}
-                className="press flex h-12 items-center rounded-full border-2 border-rose bg-surface px-5 text-base font-bold text-ink active:bg-rose/20"
+                className="press flex h-12 items-center rounded-full border border-ink/20 bg-surface px-5 text-base font-semibold text-ink"
               >
                 {table.label ?? `Mesa ${table.code}`}
               </Link>
