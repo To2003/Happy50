@@ -76,10 +76,13 @@ async function processNext(): Promise<boolean> {
     // el celu. La miniatura queda para mostrar la fila en la cola.
     await updateItem(next.id, { status: 'done', progressPercent: 100, displayBlob: undefined })
   } catch (err) {
+    // Al agotar los intentos ya no se reintenta solo: los mensajes que dicen
+    // "lo reintentamos solos" se cambian por el que pide tocar Reintentar.
+    const message = err instanceof Error ? err.message : ''
     await updateItem(next.id, {
       status: 'failed',
       errorMessage:
-        err instanceof Error ? err.message : 'No se pudo subir, tocá para reintentar.',
+        message && !/reintent/i.test(message) ? message : 'No se pudo subir, tocá para reintentar.',
     })
   }
 
