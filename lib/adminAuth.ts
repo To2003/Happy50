@@ -17,9 +17,16 @@ function sessionToken(): string {
   return createHmac('sha256', secret).update('happy50-admin-session').digest('hex')
 }
 
+// Compara a tiempo constante: se comparan los HMAC (mismo largo siempre) en
+// vez de los strings, así el tiempo de respuesta no da pistas de la contraseña.
+function samePassword(provided: string, expected: string): boolean {
+  const digest = (value: string) => createHmac('sha256', 'happy50-admin-login').update(value).digest()
+  return timingSafeEqual(digest(provided), digest(expected))
+}
+
 export async function createAdminSession(password: string): Promise<boolean> {
   const expected = process.env.ADMIN_PASSWORD
-  if (!expected || password !== expected) {
+  if (!expected || !samePassword(password, expected)) {
     return false
   }
 
