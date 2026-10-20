@@ -54,16 +54,21 @@ button:not(:disabled):active,
   }
 }
 
-/* El gesto de marca del rediseño: un borde festoneado, como el canto de
-   una banderita de cumpleaños. Se usa una sola vez por pantalla, entre el
-   hero y el resto del contenido — nunca como decoración suelta. */
+/* Títulos en Fraunces con el eje SOFT a mitad: cálido sin ponerse retro. */
+.font-display {
+  font-variation-settings: 'SOFT' 50;
+  letter-spacing: -0.02em;
+}
+
+/* El gesto de marca: un festón de línea fina dorada, como el borde calado
+   de una invitación. Una sola vez por pantalla, entre el hero y el resto. */
 .scallop-edge {
-  height: 20px;
-  background-color: theme('colors.rose');
-  -webkit-mask-image: radial-gradient(circle at 10px 0, transparent 9px, black 10px);
-  mask-image: radial-gradient(circle at 10px 0, transparent 9px, black 10px);
-  -webkit-mask-size: 20px 20px;
-  mask-size: 20px 20px;
+  height: 8px;
+  background-color: theme('colors.gold');
+  -webkit-mask-image: radial-gradient(circle at 8px 0, transparent 6px, black 6.5px, black 7.5px, transparent 8px);
+  mask-image: radial-gradient(circle at 8px 0, transparent 6px, black 6.5px, black 7.5px, transparent 8px);
+  -webkit-mask-size: 16px 8px;
+  mask-size: 16px 8px;
   -webkit-mask-repeat: repeat-x;
   mask-repeat: repeat-x;
   -webkit-mask-position: top;

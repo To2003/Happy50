@@ -5,12 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: '#FBEDE7',
-        surface: '#FFFBF8',
-        rose: '#D9A7AC',
-        fuchsia: '#C2255C',
-        gold: '#C89B3C',
-        ink: '#4A2530',
+        // Editorial cálida: crema rosado, texto bordó, un solo acento fucsia
+        // profundo y dorado solo en detalles finos (no en texto: 3.2:1).
+        bg: '#FAF0EA',
+        surface: '#FFFAF6',
+        rose: '#E3C4C3',
+        fuchsia: '#A3124A',
+        gold: '#A88232',
+        ink: '#4A1626',
         danger: '#9B2C2C',
         // Pasteles de las tarjetas de misión — separados en matiz a
         // propósito (rosa / dorado-amarillo / malva / durazno) para que
