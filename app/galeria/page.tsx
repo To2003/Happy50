@@ -11,6 +11,13 @@ import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
 import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/Icon'
+import { Button } from '@/components/Button'
+import { Chip } from '@/components/Chip'
+import { Select } from '@/components/Field'
+import { Dialog, useDialogBehavior } from '@/components/Dialog'
+import { PageHeader } from '@/components/PageHeader'
+import { Skeleton } from '@/components/Skeleton'
+import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
@@ -69,12 +76,15 @@ function Viewer({
   guest,
   onClose,
   onDeleted,
+  onError,
 }: {
   photo: Photo
   guest: Guest | null
   onClose: () => void
   onDeleted: (id: string) => void
+  onError: (message: string) => void
 }) {
+  useDialogBehavior(onClose)
   const [hearted, setHearted] = useState(false)
   const [heartCount, setHeartCount] = useState(photo.hearts)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -108,7 +118,8 @@ function Viewer({
         setPopKey((key) => key + 1)
       }
     } catch {
-      // El corazón no cambió: el estado optimista no se tocó, no hace falta revertir nada visible.
+      // El estado no se tocó antes del await: no hay nada que revertir, solo avisar.
+      onError('No se pudo guardar el corazón. Probá de nuevo.')
     } finally {
       setBusy(false)
     }
@@ -123,6 +134,7 @@ function Viewer({
     } catch {
       setBusy(false)
       setConfirmingDelete(false)
+      onError('No se pudo borrar la foto. Probá de nuevo.')
     }
   }
 
@@ -148,8 +160,9 @@ function Viewer({
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="h-12 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
+            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
           >
+            <Icon name="trash" className="h-5 w-5" />
             Borrar
           </button>
         )}
@@ -178,29 +191,30 @@ function Viewer({
       </div>
 
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift animate-enter">
-            <p className="font-display text-xl font-semibold leading-snug">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                disabled={busy}
-                className="h-14 flex-1 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink disabled:opacity-40"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={() => void confirmDelete()}
-                disabled={busy}
-                className="h-14 flex-1 rounded-full bg-danger text-base font-semibold text-white disabled:opacity-40"
-              >
-                {busy ? 'Borrando...' : 'Sí, borrar'}
-              </button>
-            </div>
+        <Dialog
+          title="¿Borrar esta foto? No la vas a poder recuperar vos mismo después."
+          onClose={() => !busy && setConfirmingDelete(false)}
+        >
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmingDelete(false)}
+              disabled={busy}
+              className="flex-1 px-4"
+            >
+              No
+            </Button>
+            <Button
+              variant="danger"
+              icon="trash"
+              loading={busy}
+              onClick={() => void confirmDelete()}
+              className="flex-1 px-4"
+            >
+              {busy ? 'Borrando…' : 'Sí, borrar'}
+            </Button>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   )
@@ -216,6 +230,7 @@ export default function GaleriaPage() {
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
+  const { toast, showToast } = useToast()
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const staggerFor = useInitialStagger(
@@ -303,34 +318,30 @@ export default function GaleriaPage() {
 
   function handleDeleted(id: string) {
     setPhotos((current) => current.filter((photo) => photo.id !== id))
+    showToast('Listo, la foto se borró')
   }
 
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen animate-page flex-col gap-6 px-4 pb-12 pt-10">
-      <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">Galería</h1>
+    <main id="contenido" className="flex min-h-screen animate-page flex-col gap-6 px-4 pb-12 pt-10">
+      <PageHeader title="Galería" />
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
+        <Chip
+          selected={filters.onlyMine}
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          aria-pressed={filters.onlyMine}
-          className={`flex h-12 items-center gap-1.5 rounded-full px-4 text-base font-semibold ${
-            filters.onlyMine ? 'bg-fuchsia text-white' : 'border border-ink/20 bg-surface text-ink'
-          }`}
         >
-          {filters.onlyMine && <Icon name="check" className="h-4 w-4" />}
           Mis fotos
-        </button>
+        </Chip>
 
-        <select
+        <Select
           aria-label="Filtrar por misión"
           value={filters.missionId ?? ''}
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="h-12 min-w-0 max-w-full rounded-full border border-ink/20 bg-surface px-4 text-base font-semibold text-ink"
+          className="w-auto max-w-full"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -338,13 +349,13 @@ export default function GaleriaPage() {
               {mission.title}
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="h-12 min-w-0 max-w-full rounded-full border border-ink/20 bg-surface px-4 text-base font-semibold text-ink"
+          className="w-auto max-w-full"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -352,7 +363,7 @@ export default function GaleriaPage() {
               {table.label ?? `Mesa ${table.code}`}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
@@ -364,10 +375,15 @@ export default function GaleriaPage() {
             stagger={staggerFor(photo.id)}
           />
         ))}
+        {/* Mientras carga una tanda: celdas de skeleton (9 la primera vez, 3 al paginar). */}
+        {loading &&
+          Array.from({ length: photos.length === 0 ? 9 : 3 }, (_, i) => (
+            <Skeleton key={`sk-${i}`} className="aspect-square rounded-xl" />
+          ))}
       </div>
 
       {photos.length === 0 && !loading && (
-        <EmptyState>
+        <EmptyState icon="images">
           <p className="text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
         </EmptyState>
       )}
@@ -380,8 +396,10 @@ export default function GaleriaPage() {
           guest={guest}
           onClose={() => setViewerPhoto(null)}
           onDeleted={handleDeleted}
+          onError={(message) => showToast(message, 'error')}
         />
       )}
+      {toast}
     </main>
     </>
   )
