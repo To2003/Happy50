@@ -245,6 +245,7 @@ export default function GaleriaPage() {
   // Arranca en true: la primera tanda es la única que entra escalonada.
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
   // Miniatura de la que salió el visor: ahí vuelve la transición al cerrar.
   const openedFrom = useRef<HTMLElement | null>(null)
@@ -305,6 +306,10 @@ export default function GaleriaPage() {
       if (!error && data) {
         setPhotos((current) => (offset === 0 ? data : [...current, ...data]))
         setHasMore(data.length === PAGE_SIZE)
+        setLoadError(false)
+      } else {
+        // Antes se tragaba el error y se veía "Todavía no hay fotos", que no era cierto.
+        setLoadError(true)
       }
 
       loadingRef.current = false
@@ -403,7 +408,16 @@ export default function GaleriaPage() {
           ))}
       </div>
 
-      {photos.length === 0 && !loading && (
+      {loadError && !loading && (
+        <EmptyState icon="alert">
+          <p className="text-base text-danger">No se pudieron cargar las fotos. Puede ser la conexión — probá de nuevo.</p>
+          <Button icon="retry" onClick={() => void loadPage(photos.length)}>
+            Reintentar
+          </Button>
+        </EmptyState>
+      )}
+
+      {photos.length === 0 && !loading && !loadError && (
         <EmptyState icon="images">
           <p className="text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
         </EmptyState>
