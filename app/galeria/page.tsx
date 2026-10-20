@@ -16,6 +16,7 @@ import { Chip } from '@/components/Chip'
 import { Select } from '@/components/Field'
 import { Dialog, useDialogBehavior } from '@/components/Dialog'
 import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
@@ -421,6 +422,7 @@ export default function GaleriaPage() {
       )}
       {toast}
     </main>
+    {!hasMore && photos.length > 0 && <CreditFooter />}
     </>
   )
 }

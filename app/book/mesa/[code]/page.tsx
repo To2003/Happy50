@@ -6,6 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { EmptyState } from '@/components/EmptyState'
 import { BookTimeline } from '@/components/BookTimeline'
 import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
 
 export default function BookMesaPage() {
   const params = useParams<{ code: string }>()
@@ -41,6 +42,7 @@ export default function BookMesaPage() {
         <PageHeader title={`El book de ${table.label}`} />
       </div>
       <BookTimeline tableFilter={table} />
+      <CreditFooter />
     </main>
   )
 }

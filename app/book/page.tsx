@@ -1,5 +1,6 @@
 import { BookTimeline } from '@/components/BookTimeline'
 import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
 
 export default function BookPage() {
   return (
@@ -8,6 +9,7 @@ export default function BookPage() {
         <PageHeader title="El book de la noche" />
       </div>
       <BookTimeline />
+      <CreditFooter />
     </main>
   )
 }
