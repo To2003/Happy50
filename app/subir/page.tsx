@@ -230,23 +230,24 @@ function SubirScreen() {
       <TopNav />
       <Confetti trigger={confettiTrigger} />
 
-      <main className="flex min-h-screen animate-page flex-col gap-6 pb-10">
+      {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
+      <main className="flex min-h-screen flex-col gap-6 pb-10">
         <section
           className="relative flex min-h-[280px] flex-col justify-end gap-2 bg-cover bg-center px-6 py-8"
           style={{ backgroundImage: "url('/ines.jpg')" }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
           <div className="relative flex flex-col gap-1">
-            <h1 className="font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
-            <p className="text-base text-white/90">
+            <h1 className="animate-enter font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
+            <p className="animate-enter text-base text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
-            <p className="mt-1 text-base font-bold text-white">{nightCounterLabel(photoCount)}</p>
+            <p className="mt-1 animate-enter text-base font-bold text-white [animation-delay:120ms]">{nightCounterLabel(photoCount)}</p>
           </div>
         </section>
         <div className="scallop-edge" />
 
-        <div className="flex flex-col gap-6 px-6">
+        <div className="flex animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
               <button

@@ -30,6 +30,13 @@ Referencia corta de tokens y reglas visuales. Los valores viven en
 - Entradas: `animate-enter` (aparecer + subir 8px), `animate-page` (al
   montar una pantalla), `animate-pop` (corazón). Nada en loop salvo
   placeholders de carga (`animate-pulse`).
-- `prefers-reduced-motion: reduce` corta todo de forma global en `globals.css`;
-  no hace falta repetirlo por componente.
+- Heros (home, `/subir`, `/entrar`): sin `animate-page`; título, texto y botón
+  con `animate-enter` + `[animation-delay:60ms]`, `120ms`, `180ms`.
+- Listas (`/galeria`, `/misiones`): `useInitialStagger(ids, ready)` de
+  `lib/`. Escalona solo la primera tanda (máx. 12, 50 ms entre ítems); filtros,
+  scroll infinito y refrescos aparecen sin animar.
+- Las animaciones usan fill `backwards`: nunca dejan transform aplicado (si no,
+  rompen los hijos `position: fixed`).
+- `prefers-reduced-motion: reduce` corta todo (duración y delay) de forma
+  global en `globals.css`; no hace falta repetirlo por componente.
 - Foco: `:focus-visible` con borde fucsia de 3px, global. No sacar `outline`.
