@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
@@ -11,6 +12,12 @@ import { useUploadQueue } from '@/lib/useUploadQueue'
 import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
+import { Icon } from '@/components/Icon'
+
+// Foto del hero. Con null el hero es tipográfico (el "50" grande); al poner
+// la ruta (ej. '/ines.jpg') pasa a foto a sangre con degradado inferior, sin
+// tocar nada más. next/image la sirve en WebP/AVIF; el original, < 150 KB.
+const HERO_PHOTO: string | null = null
 
 interface StagedFile {
   id: string
@@ -49,7 +56,7 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
   return (
-    <li className="flex animate-enter items-center gap-3 rounded-2xl bg-surface p-3 shadow-soft">
+    <li className="flex animate-enter items-center gap-3 rounded-2xl border border-rose bg-surface p-3">
       {item.thumbBlob ? (
         <QueueThumb blob={item.thumbBlob} />
       ) : (
@@ -58,7 +65,7 @@ function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) =>
       <div className="min-w-0 flex-1">
         <p className="truncate text-base text-ink/70">{item.fileName}</p>
         {/* key por estado: cada cambio de estado entra con un fade corto. */}
-        <p key={item.status} className="animate-enter text-base font-bold text-ink">
+        <p key={item.status} className="animate-enter text-base font-semibold text-ink">
           {STATUS_LABEL[item.status]}
           {item.status === 'uploading' &&
             typeof item.progressPercent === 'number' &&
@@ -72,7 +79,7 @@ function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) =>
         <button
           type="button"
           onClick={() => onRetry(item.id)}
-          className="h-12 shrink-0 rounded-full bg-fuchsia px-4 text-base font-bold text-white"
+          className="h-12 shrink-0 rounded-full bg-fuchsia px-4 text-base font-semibold text-white"
         >
           Reintentar
         </button>
@@ -231,18 +238,38 @@ function SubirScreen() {
       <Confetti trigger={confettiTrigger} />
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main className="flex min-h-screen flex-col gap-6 pb-10">
+      <main className="flex min-h-screen flex-col gap-6 pb-12">
+        {/* Con foto: alto fijo (42svh), sin salto de layout al cargar y con
+            "Sacar foto" visible sin scrollear a 360x640. Sin foto: campo bordó
+            del alto de su contenido. */}
         <section
-          className="relative flex min-h-[280px] flex-col justify-end gap-2 bg-cover bg-center px-6 py-8"
-          style={{ backgroundImage: "url('/ines.jpg')" }}
+          className={`relative flex flex-col justify-end overflow-hidden bg-ink px-6 pb-6 text-white ${
+            HERO_PHOTO ? 'h-[42svh] min-h-[240px]' : 'pt-12'
+          }`}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
-          <div className="relative flex flex-col gap-1">
-            <h1 className="animate-enter text-balance font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
-            <p className="animate-enter text-base text-white/90 [animation-delay:60ms]">
+          {HERO_PHOTO && (
+            <>
+              <Image
+                src={HERO_PHOTO}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-[50%_30%]"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink/85 to-transparent" />
+            </>
+          )}
+          <div className="relative flex flex-col gap-2">
+            <h1 className="animate-enter text-balance font-display text-4xl font-semibold leading-none">
+              ¡Sumate a la fiesta!
+            </h1>
+            <p className="max-w-[34ch] animate-enter text-base leading-snug text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
-            <p className="mt-1 animate-enter text-base font-bold text-white [animation-delay:120ms]">{nightCounterLabel(photoCount)}</p>
+            <p className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]">
+              {nightCounterLabel(photoCount)}
+            </p>
           </div>
         </section>
         <div className="scallop-edge" />
@@ -253,16 +280,18 @@ function SubirScreen() {
               <button
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="flex h-16 items-center justify-center gap-2 rounded-full bg-fuchsia text-xl font-bold text-white active:opacity-90"
+                className="flex h-16 items-center justify-center gap-3 rounded-full bg-fuchsia text-lg font-semibold text-white shadow-soft"
               >
-                📷 Sacar foto
+                <Icon name="camera" />
+                Sacar foto
               </button>
               <button
                 type="button"
                 onClick={() => galleryInputRef.current?.click()}
-                className="flex h-12 items-center justify-center rounded-full border-2 border-rose bg-surface text-base font-bold text-ink active:bg-rose/20"
+                className="flex h-14 items-center justify-center gap-3 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink"
               >
-                🖼️ Elegir fotos
+                <Icon name="images" className="h-5 w-5" />
+                Elegir fotos
               </button>
 
               <input
@@ -293,7 +322,7 @@ function SubirScreen() {
                     key={item.id}
                     src={item.previewUrl}
                     alt=""
-                    className="aspect-square w-full rounded-2xl object-cover"
+                    className="aspect-square w-full rounded-xl object-cover"
                   />
                 ))}
               </div>
@@ -304,12 +333,12 @@ function SubirScreen() {
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
                 aria-label="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-rose bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:ring-2 focus:ring-fuchsia"
+                className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:border-fuchsia focus:ring-1 focus:ring-fuchsia"
               />
 
               {missions.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-base text-ink/70">Misión (opcional)</p>
+                  <p className="text-sm font-semibold text-ink/70">Misión (opcional)</p>
                   <div className="flex flex-wrap gap-2">
                     {missions.map((mission) => (
                       <button
@@ -318,13 +347,15 @@ function SubirScreen() {
                         onClick={() =>
                           setMissionId((current) => (current === mission.id ? null : mission.id))
                         }
-                        className={`h-12 rounded-full px-4 text-base font-bold ${
+                        aria-pressed={missionId === mission.id}
+                        className={`flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold ${
                           missionId === mission.id
                             ? 'bg-fuchsia text-white'
-                            : 'border-2 border-rose bg-surface text-ink'
+                            : 'border border-ink/20 bg-surface text-ink'
                         }`}
                       >
-                        {mission.emoji} {mission.title}
+                        {missionId === mission.id && <Icon name="check" className="h-4 w-4" />}
+                        {mission.title}
                       </button>
                     ))}
                   </div>
@@ -338,7 +369,7 @@ function SubirScreen() {
                   type="button"
                   onClick={cancelStaged}
                   disabled={preparing}
-                  className="h-14 flex-1 rounded-full border-2 border-rose bg-surface text-base font-bold text-ink disabled:opacity-40"
+                  className="h-14 flex-1 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink disabled:opacity-40"
                 >
                   Cancelar
                 </button>
@@ -346,7 +377,7 @@ function SubirScreen() {
                   type="button"
                   onClick={() => void confirmUpload()}
                   disabled={preparing}
-                  className="h-14 flex-[2] rounded-full bg-fuchsia text-base font-bold text-white disabled:opacity-40"
+                  className="h-14 flex-[2] rounded-full bg-fuchsia text-base font-semibold text-white shadow-soft disabled:opacity-40"
                 >
                   {preparing
                     ? 'Preparando...'

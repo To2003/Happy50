@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import { Lilita_One, Nunito } from 'next/font/google'
+import { DM_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 
-const lilitaOne = Lilita_One({
+// Variables: wght va siempre; de los ejes extra solo SOFT (sin opsz ni WONK).
+const fraunces = Fraunces({
   subsets: ['latin'],
-  weight: '400',
+  axes: ['SOFT'],
   variable: '--font-display',
   display: 'swap',
 })
 
-const nunito = Nunito({
+const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
@@ -22,12 +23,12 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FBEDE7',
+  themeColor: '#FAF0EA',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={`${lilitaOne.variable} ${nunito.variable}`}>
+    <html lang="es" className={`${fraunces.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-bg font-body text-ink antialiased">{children}</body>
     </html>
   )
