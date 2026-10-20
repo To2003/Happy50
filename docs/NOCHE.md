@@ -75,6 +75,46 @@ Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
   producción Next oculta el mensaje de los errores tirados en Server Actions,
   así que "¿código repetido?" o "¿todavía tiene invitados?" nunca llegaban.
 
+### P5b: lógica (commits `fix:` / `refactor:`, cada uno revertible)
+- `fix:` subida idempotente. `storage.upload` usa `upsert: false`: si la foto
+  grande subía y después fallaba la miniatura o el insert, cada reintento
+  chocaba con "ya existe" y la foto quedaba en Falló para siempre (incluso con
+  Reintentar). Ahora 409 en Storage y 23505 en el insert cuentan como éxito.
+- `fix:` sin conexión la cola espera al evento `online` y no gasta intentos;
+  al terminar suelta la foto grande de IndexedDB (queda la miniatura).
+- `fix:` "Preparando…" visible mientras se procesa; antes la selección se
+  vaciaba al instante y el error de procesamiento no se veía nunca.
+- `fix:` "Descartar" en fotos que fallaron (`removeItem`).
+- `fix:` home y `/subir` sin red ya no quedan en blanco (faltaba `catch`).
+  Solo cambia el camino de error; sin invitado redirige igual que antes.
+- `fix:` `/galeria` muestra error con reintento en vez de "no hay fotos".
+- `fix:` una foto que falló ya no dice "lo reintentamos solos".
+- `fix:` contraseña de admin comparada a tiempo constante.
+- `refactor:` mutaciones del admin devuelven `{ ok, error }` (ver P5).
+- `refactor:` `lib/book.ts` (agrupado del timeline), `lib/retry.ts` (bucle de
+  reintentos con entorno inyectado), `lib/uploadErrors.ts`. 13 tests con
+  `node:test` (`npm test`), sin dependencias nuevas.
+- `refactor:` Momentos del admin usa miniaturas (60 x 300 KB -> 60 x 40 KB).
+- `refactor:` bandera `ENABLE_HIGH_RES_DISPLAY` (apagada), ver abajo.
+- Tope de subidas simultáneas: ya era 1 (el processor sube de a una). Se deja.
+- Orientación EXIF: ya correcta (`createImageBitmap(..., { imageOrientation:
+  'from-image' })`, también en el fallback HEIC). Sin cambios.
+- Paginación: galería ya pagina; el book trae todas las filas de una (JSON
+  liviano) y las imágenes cargan con `loading="lazy"` + reveal. Se deja.
+
+### Redimensionado en el cliente: ya existía
+El pipeline (`lib/pipeline/compress.ts`) siempre redimensionó: la versión
+"display" es de 1600 px de lado largo y ~300 KB, y el original nunca se sube.
+Por eso no agregué `ENABLE_CLIENT_RESIZE` (sería un no-op confuso): agregué
+`ENABLE_HIGH_RES_DISPLAY = false`, que con `true` sube la display a 2400 px y
+calidad 0,85 (~900 KB).
+- Impacto en el book impreso: 1600 px a 300 dpi = 13,5 cm de lado largo (bien
+  para fotos chicas; justo para media página). 2400 px = 20 cm a 300 dpi o
+  30 cm a 200 dpi (alcanza para una A4 a sangre). Página completa A4 a 300 dpi
+  pediría ~3500 px.
+- Costo: ~3 veces más Storage y egress, y subidas más lentas con wifi malo.
+- Solo afecta fotos nuevas. Decidir antes de la fiesta, no durante.
+
 ## Decisiones
 - Toasts sin estado global: `useToast()` es local a cada pantalla
   (CLAUDE.md pide no meter estado global sin preguntar).
@@ -84,16 +124,82 @@ Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
 - Textos nuevos solo donde no existía copy (toasts): "¡Listo! Tu foto ya está
   en el álbum", "Listo, la foto se borró", "No se pudo borrar la foto. Probá de
   nuevo.", "No se pudo guardar el corazón. Probá de nuevo."
-
 - Contenedores por ruta (`loading/error/layout`) en vez de uno raíz: el raíz
   también afectaría `/tv`.
 - QA visual con un Supabase falso en HTTP local (mismo shape de datos) y
   Playwright, solo en el scratchpad: nada de eso entra al repo.
 
+- `ENABLE_HIGH_RES_DISPLAY` en vez de `ENABLE_CLIENT_RESIZE` (ver arriba).
+- Tests con `node:test` + `--experimental-strip-types` (Node 22) en vez de
+  sumar Vitest: cero dependencias. Los módulos testeados no importan alias `@/`.
+
 ## Pendiente / Bloqueos
-- (en curso) P5b lógica, P6 pulido.
+
+### Propuestas de seguridad (NO aplicadas: tocan RLS/Storage)
+Hoy cualquier sesión (incluida la anónima) puede subir cualquier archivo de
+cualquier tamaño al bucket, y un invitado puede cambiar cualquier columna de
+sus propias fotos (`is_featured`, `hearts`, `caption`, `milestone_override_id`)
+desde la consola del navegador. Migración sugerida `0007_hardening.sql`:
+
+```sql
+-- 1) Bucket: solo JPEG, hasta 2 MB (display ~300 KB; alta resolución ~900 KB).
+update storage.buckets
+  set allowed_mime_types = array['image/jpeg'], file_size_limit = 2097152
+  where id = 'photos';
+
+-- 2) Solo las carpetas que usa la app.
+drop policy photos_bucket_insert_authenticated on storage.objects;
+create policy photos_bucket_insert_authenticated on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'photos'
+    and (storage.foldername(name))[1] in ('display', 'thumb')
+  );
+
+-- 3) El invitado solo puede borrar (status = 'deleted') sus fotos.
+revoke update on photos from anon, authenticated;
+grant update (status) on photos to authenticated;
+drop policy photos_update_own_guest on photos;
+create policy photos_update_own_guest on photos
+  for update
+  using (exists (select 1 from guests g where g.id = photos.guest_id and g.user_id = auth.uid()))
+  with check (
+    status = 'deleted'
+    and exists (select 1 from guests g where g.id = photos.guest_id and g.user_id = auth.uid())
+  );
+```
+Antes de aplicar: probar en un proyecto de staging que subir, borrar la propia
+foto y dar corazón sigan andando (el corazón actualiza `hearts` por trigger
+`security definer`; verificar que el trigger no dependa del grant).
+
+- Límite de uso: no hay tope de fotos por invitado. Si preocupa, un trigger
+  `before insert` que rechace más de N fotos por `guest_id` por hora.
+- Login del admin: sin límite de intentos. Mitigación sin código: que
+  `ADMIN_PASSWORD` sea larga y aleatoria (16+ caracteres). Si hace falta más,
+  una regla de rate limit del firewall de Vercel sobre `POST /admin`.
+
+### Otros pendientes
+- `CREDIT_URL` en `lib/credit.ts` (hoy `null`).
+- `HERO_PHOTO` en `app/subir/page.tsx` cuando haya foto aprobada.
+- (en curso) P6 pulido.
 
 ## Probar a mano
+Cambios de lógica que no pude verificar contra el backend real (solo con
+tests y un Supabase falso):
+- Subida con wifi malo: en `/subir`, subir 3 fotos y activar modo avión a
+  mitad de la subida. Tiene que quedar en "Subiendo" sin gastar intentos;
+  al volver la red, termina sola. Ninguna debería quedar en "Falló".
+- Subida idempotente: con las DevTools en "Slow 3G", subir una foto y cortar
+  la red justo después de que suba la grande (antes de la miniatura). Al
+  volver, tiene que terminar en "Lista" (antes quedaba en "Falló").
+- Reintentar / Descartar: forzar un fallo (por ejemplo, borrando la sesión
+  en localStorage) y probar los dos botones.
+- Volver a abrir `/subir` después de subir: no tiene que haber confetti.
+- Abrir `/subir` sin red con una sesión ya creada: tiene que verse la
+  pantalla (antes quedaba en blanco) y poder elegir fotos, que esperan en cola.
+- Admin: entrar con la contraseña correcta y con una incorrecta.
+- Admin, Momentos: "Arrancar ahora" pide confirmación; reasignar por rango
+  con "desde" posterior a "hasta" muestra el error y no llama al servidor.
 - Admin, Mesas: crear una mesa con un código que ya existe en la base pero no
   en la lista (por ejemplo, otra pestaña): tiene que aparecer el toast "No se
   pudo crear la mesa (¿código repetido?)." en vez de un texto en inglés.
