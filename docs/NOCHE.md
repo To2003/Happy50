@@ -1,9 +1,65 @@
 # Noche: registro de trabajo autónomo
 
-Rama `claude/funny-ride-gbt756`, PR #3 en borrador. Nada mergeado, nada en main.
-El PR #2 ya estaba mergeado (solo base, `/subir` y home): el trabajo de la
-noche se rebaseó sobre `origin/main` (árbol idéntico) y va en el PR #3.
+Rama `claude/funny-ride-gbt756`. Los PR #2 y #3 ya están mergeados en main;
+el arreglo del borrado sale de una rama reiniciada desde main (sin PR todavía).
 Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
+
+## Bug en producción: "Borrar" en /galeria (iPhone Safari)
+
+**Causa más probable (no es regresión de anoche):** el borrado era un
+`UPDATE photos SET status = 'deleted'` directo desde el navegador. Con RLS,
+Postgres exige que la fila nueva de un UPDATE con WHERE siga visible por las
+políticas de SELECT; la única es `photos_select_visible` (`status =
+'visible'`), así que el UPDATE falla con 42501 "new row violates row-level
+security policy". El código del borrado es idéntico en e2a3725 y en main; en
+e2a3725 el `catch` se tragaba el error (el diálogo se cerraba y la foto seguía
+ahí) y desde anoche se muestra como toast. No es propio de iPhone: pasa en
+cualquier navegador.
+
+Hipótesis, de más a menos probable, y cómo confirmarlas:
+1. **Fila nueva invisible por la política de SELECT (42501).** Confirmar con
+   el bloque 0 de `sql/propuesta-seguridad.sql`, o en Safari > Desarrollo >
+   inspector web del iPhone: el `PATCH /rest/v1/photos?id=eq...` responde 403
+   con `"code":"42501"`.
+2. **"Foto propia" que no coincide** (la sesión anónima cambió: Safari borra
+   el almacenamiento de sitios no visitados en 7 días y crea otro usuario).
+   Poco probable: el botón Borrar solo aparece si `guest.id === photo.guest_id`
+   para la sesión actual. Confirmar: en Supabase, `select user_id from guests
+   where id = '<guest_id de la foto>'` contra el `sub` del JWT de la sesión.
+3. **0 filas afectadas tratadas como error.** Descartada para el síntoma: con
+   el código viejo 0 filas no daba error (la foto desaparecía de la grilla y
+   volvía al recargar). El nuevo endpoint lo trata como `not_found`, no como éxito.
+4. **Falta una política DELETE.** No aplica: el borrado es lógico (UPDATE), no
+   hay DELETE en la tabla ni en `storage.objects`.
+5. **Variable de entorno ausente en Vercel.** No aplicaba al código viejo (usaba
+   la clave anon). Con el arreglo SÍ aplica: la ruta usa
+   `SUPABASE_SERVICE_ROLE_KEY`; si falta, responde 503 `misconfigured` y lo
+   loguea.
+6. **Orden fila/archivo.** No aplica: el archivo de Storage no se borra nunca
+   (SPEC §6); el borrado es un único UPDATE de una fila, no puede quedar a medias.
+
+**Arreglo (sin tocar RLS ni esquema):** `DELETE /api/photos/[id]`. Verifica el
+JWT del invitado contra Supabase Auth, busca su `guest`, comprueba que la foto
+sea suya y marca `status = 'deleted'` con la clave de servicio en un único
+`UPDATE ... WHERE id = ? AND guest_id = ?`. Responde `401 no_session`,
+`403 not_owner`, `404 not_found`, `503 misconfigured` o `500 server_error`;
+el detalle técnico va a `console.error` (logs de Vercel), al invitado le llega
+un mensaje humano que distingue "no es tuya" de "probá de nuevo". 11 tests
+nuevos (`tests/deletePhoto.test.mts`), más una prueba de la ruta real contra
+un Supabase falso (401, 401, 404, 403, 200 y 503 sin la clave de servicio).
+Es una excepción a "las escrituras de invitado van directo a Supabase"
+(CLAUDE.md): si se aplica el bloque A del SQL se podría volver al borrado
+directo, pero la ruta ya funciona sin cambiar la base.
+
+**Qué verificar vos:**
+- Vercel > Settings > Environment Variables: `SUPABASE_SERVICE_ROLE_KEY` cargada
+  en Production (la usa también el admin; si el admin anda, está).
+- Después del deploy: borrar una foto propia desde el iPhone. Tiene que
+  desaparecer y no volver al recargar. En Supabase:
+  `select status from photos where id = '<id>'` debe dar `deleted`.
+- Vercel > Logs, filtrar por `[borrar foto]`: no debería haber errores.
+- Corazones (hallazgo aparte, ver bloque B del SQL): comparar `photos.hearts`
+  con `count(*)` de `hearts` en una foto ajena con votos.
 
 ## Hecho
 
@@ -161,42 +217,8 @@ calidad 0,85 (~900 KB).
 ## Pendiente / Bloqueos
 
 ### Propuestas de seguridad (NO aplicadas: tocan RLS/Storage)
-Hoy cualquier sesión (incluida la anónima) puede subir cualquier archivo de
-cualquier tamaño al bucket, y un invitado puede cambiar cualquier columna de
-sus propias fotos (`is_featured`, `hearts`, `caption`, `milestone_override_id`)
-desde la consola del navegador. Migración sugerida `0007_hardening.sql`:
-
-```sql
--- 1) Bucket: solo JPEG, hasta 2 MB (display ~300 KB; alta resolución ~900 KB).
-update storage.buckets
-  set allowed_mime_types = array['image/jpeg'], file_size_limit = 2097152
-  where id = 'photos';
-
--- 2) Solo las carpetas que usa la app.
-drop policy photos_bucket_insert_authenticated on storage.objects;
-create policy photos_bucket_insert_authenticated on storage.objects
-  for insert to authenticated
-  with check (
-    bucket_id = 'photos'
-    and (storage.foldername(name))[1] in ('display', 'thumb')
-  );
-
--- 3) El invitado solo puede borrar (status = 'deleted') sus fotos.
-revoke update on photos from anon, authenticated;
-grant update (status) on photos to authenticated;
-drop policy photos_update_own_guest on photos;
-create policy photos_update_own_guest on photos
-  for update
-  using (exists (select 1 from guests g where g.id = photos.guest_id and g.user_id = auth.uid()))
-  with check (
-    status = 'deleted'
-    and exists (select 1 from guests g where g.id = photos.guest_id and g.user_id = auth.uid())
-  );
-```
-Antes de aplicar: probar en un proyecto de staging que subir, borrar la propia
-foto y dar corazón sigan andando (el corazón actualiza `hearts` por trigger
-`security definer`; verificar que el trigger no dependa del grant).
-
+Todo el SQL, con explicación y cómo deshacer cada bloque, está en
+`sql/propuesta-seguridad.sql` (reemplaza la migración 0007 que estaba acá).
 - Límite de uso: no hay tope de fotos por invitado. Si preocupa, un trigger
   `before insert` que rechace más de N fotos por `guest_id` por hora.
 - Login del admin: sin límite de intentos. Mitigación sin código: que
