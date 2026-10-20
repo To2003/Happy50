@@ -21,6 +21,25 @@
   outline-offset: 2px;
 }
 
+/* Brillo del Skeleton: una franja clara que cruza, solo con transform. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 250 246 / 0.55), transparent);
+  animation: shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* Press táctil: todo botón se hunde un poco al tocarlo. Los links con
    forma de botón suman la clase .press. */
 button:not(:disabled),
