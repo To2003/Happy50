@@ -259,8 +259,9 @@ export default function GaleriaPage() {
   const loadingRef = useRef(false)
 
   useEffect(() => {
-    void findExistingGuest().then(setGuest)
-    void listActiveMissions().then(setMissions)
+    // Sin invitado (o sin red) la galería se ve igual; solo no deja dar corazón.
+    findExistingGuest().then(setGuest).catch(() => setGuest(null))
+    listActiveMissions().then(setMissions).catch(() => setMissions([]))
 
     const supabase = getSupabaseClient()
     supabase

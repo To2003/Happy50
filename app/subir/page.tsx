@@ -152,14 +152,21 @@ function SubirScreen() {
   useEffect(() => {
     let active = true
 
-    findExistingGuest().then((guest) => {
-      if (!active) return
-      if (!guest) {
-        router.replace('/')
-        return
-      }
-      setCheckingGuest(false)
-    })
+    findExistingGuest()
+      .then((guest) => {
+        if (!active) return
+        if (!guest) {
+          router.replace('/')
+          return
+        }
+        setCheckingGuest(false)
+      })
+      .catch(() => {
+        // Falló la consulta (wifi malo), no "no hay invitado": se muestra la
+        // pantalla igual para que la cola siga y se pueda sacar fotos. La
+        // inserción vuelve a chequear la sesión y el invitado del lado de RLS.
+        if (active) setCheckingGuest(false)
+      })
 
     void hydrateQueue().then(() => startUploadProcessor())
     void listActiveMissions().then((result) => {

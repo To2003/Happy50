@@ -14,14 +14,20 @@ function Bienvenida() {
   useEffect(() => {
     let active = true
 
-    findExistingGuest().then((guest) => {
-      if (!active) return
-      if (guest) {
-        router.replace('/subir')
-      } else {
-        setChecking(false)
-      }
-    })
+    findExistingGuest()
+      .then((guest) => {
+        if (!active) return
+        if (guest) {
+          router.replace('/subir')
+        } else {
+          setChecking(false)
+        }
+      })
+      .catch(() => {
+        // Sin red no se puede saber si ya entraste: se muestra la bienvenida
+        // en vez de dejar la pantalla en blanco.
+        if (active) setChecking(false)
+      })
 
     return () => {
       active = false

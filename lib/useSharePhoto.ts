@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 
 // Compartir la foto como archivo (WhatsApp la muestra como foto, no como link
