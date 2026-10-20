@@ -102,6 +102,22 @@ Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
 - Paginación: galería ya pagina; el book trae todas las filas de una (JSON
   liviano) y las imágenes cargan con `loading="lazy"` + reveal. Se deja.
 
+### P6: pulido y rendimiento
+- `next/image` solo en el hero (`HERO_PHOTO`, `sizes="100vw"`, priority). Las
+  fotos de invitados siguen en `<img loading="lazy" decoding="async">` a
+  propósito: pasarlas por la optimización de imágenes de Vercel gastaría la
+  cuota del plan con cientos de fotos y pediría configurar el dominio de
+  Supabase. Las grillas ya reservan el lugar (`aspect-square`): sin saltos.
+- Fuentes: Fraunces solo con ejes `wght` + `SOFT`, DM Sans solo `wght`, subset
+  latin y `display: swap` (verificado en los woff2 que genera `next/font`).
+- Primera carga: 103 KB de JS compartido; las rutas de invitado 170-185 KB.
+- Se borró `public/ines.jpg` (silueta placeholder sin uso).
+- Sin `rounded-lg`, `neutral-*`, `pink-*` ni emojis en el JSX de invitado.
+- 404 sin scroll horizontal; estado vacío en `/misiones` sin misiones.
+- QA visual a 360x640, 390x844, 768x1024 y 1280x800 de home, `/entrar`,
+  `/subir`, `/galeria` (+ visor), `/misiones`, `/book`, 404 y admin (todas las
+  tabs), con datos y vacíos: sin scroll horizontal en ninguna.
+
 ### Redimensionado en el cliente: ya existía
 El pipeline (`lib/pipeline/compress.ts`) siempre redimensionó: la versión
 "display" es de 1600 px de lado largo y ~300 KB, y el original nunca se sube.
@@ -121,9 +137,16 @@ calidad 0,85 (~900 KB).
 - Admin conserva el emoji de misiones y momentos: ahí se administra ese dato.
 - `PageHeader` lleva el festón; `EmptyState` ya no, para que no haya dos.
 - Hero de `/subir` sigue tipográfico (no hay foto aprobada); `HERO_PHOTO` listo.
-- Textos nuevos solo donde no existía copy (toasts): "¡Listo! Tu foto ya está
-  en el álbum", "Listo, la foto se borró", "No se pudo borrar la foto. Probá de
-  nuevo.", "No se pudo guardar el corazón. Probá de nuevo."
+- Textos nuevos solo donde no existía copy (ningún texto existente cambió de
+  redacción; solo "..." pasó a "…"): toasts ("¡Listo! Tu foto ya está en el
+  álbum", "¡Misión cumplida! Tu foto ya está en el álbum", "Listo, la foto se
+  borró", "No se pudo borrar la foto. Probá de nuevo.", "No se pudo guardar el
+  corazón. Probá de nuevo."), "Compartir", "Descartar", "Saltar al contenido",
+  error de ruta ("Algo no salió bien", "Puede ser la conexión. Probá de nuevo;
+  tus fotos en cola no se pierden.", "Ir al inicio"), 404 ("No encontramos esta
+  página", "Puede que el link esté mal escrito. Volvé al inicio y seguí desde
+  ahí."), "Todavía no hay misiones. Volvé en un rato.", error de carga de
+  galería, y en el admin: validaciones, títulos de diálogos y toasts de éxito.
 - Contenedores por ruta (`loading/error/layout`) en vez de uno raíz: el raíz
   también afectaría `/tv`.
 - QA visual con un Supabase falso en HTTP local (mismo shape de datos) y
@@ -180,8 +203,13 @@ foto y dar corazón sigan andando (el corazón actualiza `hearts` por trigger
 
 ### Otros pendientes
 - `CREDIT_URL` en `lib/credit.ts` (hoy `null`).
-- `HERO_PHOTO` en `app/subir/page.tsx` cuando haya foto aprobada.
-- (en curso) P6 pulido.
+- `HERO_PHOTO` en `app/subir/page.tsx` cuando haya foto aprobada (< 150 KB).
+- Decidir `ENABLE_HIGH_RES_DISPLAY` antes de la fiesta.
+- `NEXT_PUBLIC_SITE_URL` en Vercel para que la imagen Open Graph salga con URL
+  absoluta (si no está, Next usa una URL relativa y WhatsApp no la muestra).
+- Las filas de la cola de `/subir` con fotos de verdad (progreso, Reintentar,
+  Descartar) no salieron en las capturas: la cola vive en IndexedDB y no la
+  sembré en la QA. Probar a mano (lista abajo).
 
 ## Probar a mano
 Cambios de lógica que no pude verificar contra el backend real (solo con
