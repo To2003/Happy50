@@ -1,6 +1,8 @@
 # Noche: registro de trabajo autónomo
 
-Rama `claude/funny-ride-gbt756`, PR #2 en borrador. Nada mergeado, nada en main.
+Rama `claude/funny-ride-gbt756`, PR #3 en borrador. Nada mergeado, nada en main.
+El PR #2 ya estaba mergeado (solo base, `/subir` y home): el trabajo de la
+noche se rebaseó sobre `origin/main` (árbol idéntico) y va en el PR #3.
 Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
 
 ## Hecho
