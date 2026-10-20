@@ -8,6 +8,7 @@ import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { TopNav } from '@/components/TopNav'
 import { EmptyState } from '@/components/EmptyState'
+import { Icon } from '@/components/Icon'
 import { useInitialStagger } from '@/lib/useInitialStagger'
 
 interface Completion {
@@ -101,16 +102,18 @@ export default function MisionesPage() {
   return (
     <>
       <TopNav />
-      <main className="flex min-h-screen animate-page flex-col gap-6 px-6 py-8">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <h1 className="text-balance font-display text-3xl text-ink">Misiones</h1>
-            <span className="text-base font-bold tabular-nums text-ink">
+      <main className="flex min-h-screen animate-page flex-col gap-8 px-4 pb-12 pt-10">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-baseline justify-between gap-4">
+            <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">
+              Misiones
+            </h1>
+            <span className="font-display text-2xl font-semibold tabular-nums text-ink">
               {doneCount}/{totalCount}
             </span>
           </div>
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-rose/30">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-rose/60">
             <div
               className="h-full origin-left rounded-full bg-gold transition-transform duration-400 ease-out"
               style={{ transform: `scaleX(${progressPercent / 100})` }}
@@ -118,7 +121,7 @@ export default function MisionesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {missions.map((mission, index) => {
             const completion = completions.get(mission.id)
             const isDone = !!completion
@@ -131,29 +134,35 @@ export default function MisionesPage() {
                 href={`/subir?mission=${mission.id}`}
                 style={stagger.style}
                 onAnimationEnd={stagger.onAnimationEnd}
-                className={`press ${stagger.className ?? ''} relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
+                className={`press ${stagger.className ?? ''} relative flex aspect-square flex-col justify-between overflow-hidden rounded-2xl p-4 ${
+                  isDone ? 'bg-ink text-white' : `${pastel} text-ink`
+                }`}
               >
-                {isDone && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={storage.getPublicUrl(completion.thumbPath)}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-30"
-                  />
+                {isDone ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={storage.getPublicUrl(completion.thumbPath)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/90 to-transparent" />
+                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-fuchsia">
+                      <Icon name="check" className="h-5 w-5" />
+                    </span>
+                  </>
+                ) : (
+                  <Icon name="target" className="h-6 w-6 text-ink/50" />
                 )}
-                <span className="relative text-3xl" aria-hidden>
-                  {mission.emoji}
-                </span>
                 <span
-                  className={`relative text-base font-bold text-ink ${isDone ? 'line-through decoration-2' : ''}`}
+                  className={`relative text-balance font-display text-xl font-semibold leading-tight ${
+                    isDone ? 'line-through decoration-gold decoration-2' : ''
+                  }`}
                 >
                   {mission.title}
                 </span>
-                {isDone && (
-                  <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-fuchsia text-base text-white">
-                    ✓
-                  </span>
-                )}
               </a>
             )
           })}
