@@ -9,6 +9,7 @@ import { deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
+import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -29,10 +30,24 @@ const EMPTY_FILTERS: Filters = {
   onlyMine: false,
 }
 
-function GridThumb({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
+function GridThumb({
+  photo,
+  onOpen,
+  stagger,
+}: {
+  photo: Photo
+  onOpen: () => void
+  stagger: StaggerProps
+}) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
-    <button type="button" onClick={onOpen} className="relative aspect-square overflow-hidden rounded-2xl">
+    <button
+      type="button"
+      onClick={onOpen}
+      style={stagger.style}
+      onAnimationEnd={stagger.onAnimationEnd}
+      className={`relative aspect-square overflow-hidden rounded-2xl ${stagger.className ?? ''}`}
+    >
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
       <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -183,11 +198,16 @@ export default function GaleriaPage() {
   const [tables, setTables] = useState<PartyTable[]>([])
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [loading, setLoading] = useState(false)
+  // Arranca en true: la primera tanda es la única que entra escalonada.
+  const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const staggerFor = useInitialStagger(
+    photos.map((photo) => photo.id),
+    !loading,
+  )
   const loadingRef = useRef(false)
 
   useEffect(() => {
@@ -319,7 +339,12 @@ export default function GaleriaPage() {
 
       <div className="grid grid-cols-3 gap-2">
         {photos.map((photo) => (
-          <GridThumb key={photo.id} photo={photo} onOpen={() => setViewerPhoto(photo)} />
+          <GridThumb
+            key={photo.id}
+            photo={photo}
+            onOpen={() => setViewerPhoto(photo)}
+            stagger={staggerFor(photo.id)}
+          />
         ))}
       </div>
 

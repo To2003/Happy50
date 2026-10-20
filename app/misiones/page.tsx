@@ -7,6 +7,7 @@ import { storage } from '@/lib/storage'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { TopNav } from '@/components/TopNav'
+import { useInitialStagger } from '@/lib/useInitialStagger'
 
 interface Completion {
   missionId: string
@@ -22,6 +23,10 @@ export default function MisionesPage() {
   const [completions, setCompletions] = useState<Map<string, Completion>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const staggerFor = useInitialStagger(
+    missions.map((mission) => mission.id),
+    !checkingGuest && !loading && !error,
+  )
 
   async function load() {
     setLoading(true)
@@ -115,12 +120,15 @@ export default function MisionesPage() {
             const completion = completions.get(mission.id)
             const isDone = !!completion
             const pastel = PASTELS[index % PASTELS.length]
+            const stagger = staggerFor(mission.id)
 
             return (
               <a
                 key={mission.id}
                 href={`/subir?mission=${mission.id}`}
-                className={`press relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
+                style={stagger.style}
+                onAnimationEnd={stagger.onAnimationEnd}
+                className={`press ${stagger.className ?? ''} relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
               >
                 {isDone && (
                   // eslint-disable-next-line @next/next/no-img-element
