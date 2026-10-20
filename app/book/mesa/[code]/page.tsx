@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { EmptyState } from '@/components/EmptyState'
 import { BookTimeline } from '@/components/BookTimeline'
 
 export default function BookMesaPage() {
@@ -25,16 +26,18 @@ export default function BookMesaPage() {
 
   if (table === null) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-6 text-center">
-        <p className="text-base text-ink/70">No encontramos esa mesa.</p>
+      <main className="flex min-h-screen flex-col justify-center px-6">
+        <EmptyState>
+          <p className="text-base text-ink/70">No encontramos esa mesa.</p>
+        </EmptyState>
       </main>
     )
   }
 
   return (
     <main className="min-h-screen">
-      <div className="px-4 pt-6">
-        <h1 className="font-display text-3xl text-ink">El book de {table.label}</h1>
+      <div className="px-4 pt-8">
+        <h1 className="text-balance font-display text-3xl text-ink">El book de {table.label}</h1>
       </div>
       <BookTimeline tableFilter={table} />
     </main>

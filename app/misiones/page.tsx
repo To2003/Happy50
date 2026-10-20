@@ -7,6 +7,7 @@ import { storage } from '@/lib/storage'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { TopNav } from '@/components/TopNav'
+import { EmptyState } from '@/components/EmptyState'
 import { useInitialStagger } from '@/lib/useInitialStagger'
 
 interface Completion {
@@ -77,15 +78,17 @@ export default function MisionesPage() {
     return (
       <>
         <TopNav />
-        <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-base text-danger">{error}</p>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="h-12 rounded-full bg-fuchsia px-6 text-base font-bold text-white"
-          >
-            Reintentar
-          </button>
+        <main className="flex min-h-[70vh] flex-col justify-center px-6">
+          <EmptyState>
+            <p className="text-base text-danger">{error}</p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="h-14 rounded-full bg-fuchsia px-8 text-base font-bold text-white shadow-soft"
+            >
+              Reintentar
+            </button>
+          </EmptyState>
         </main>
       </>
     )
@@ -101,8 +104,8 @@ export default function MisionesPage() {
       <main className="flex min-h-screen animate-page flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h1 className="font-display text-3xl text-ink">Misiones</h1>
-            <span className="text-base font-bold text-ink">
+            <h1 className="text-balance font-display text-3xl text-ink">Misiones</h1>
+            <span className="text-base font-bold tabular-nums text-ink">
               {doneCount}/{totalCount}
             </span>
           </div>

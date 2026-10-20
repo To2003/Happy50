@@ -9,6 +9,7 @@ import { deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
+import { EmptyState } from '@/components/EmptyState'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
@@ -51,7 +52,13 @@ function GridThumb({
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
       <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt={photo.caption ?? ''} className="relative h-full w-full object-cover" />
+      <img
+        src={url}
+        alt={photo.caption ?? ''}
+        loading="lazy"
+        decoding="async"
+        className="relative h-full w-full object-cover"
+      />
     </button>
   )
 }
@@ -122,7 +129,11 @@ function Viewer({
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex animate-page flex-col bg-ink text-white">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex animate-page flex-col overscroll-contain bg-ink text-white"
+    >
       <div className="flex items-center justify-between p-4">
         <button
           type="button"
@@ -152,13 +163,14 @@ function Viewer({
         <button
           type="button"
           onClick={() => void toggleHeart()}
+          aria-pressed={hearted}
           disabled={!guest || busy}
           className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
         >
           <span key={popKey} className={popKey > 0 ? 'inline-block animate-pop' : 'inline-block'}>
             {hearted ? '❤️' : '🤍'}
           </span>{' '}
-          {heartCount}
+          <span className="tabular-nums">{heartCount}</span>
         </button>
         {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
       </div>
@@ -295,7 +307,7 @@ export default function GaleriaPage() {
     <>
     <TopNav />
     <main className="flex min-h-screen animate-page flex-col gap-4 px-4 py-8">
-      <h1 className="font-display text-3xl text-ink">Galería</h1>
+      <h1 className="text-balance font-display text-3xl text-ink">Galería</h1>
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -309,6 +321,7 @@ export default function GaleriaPage() {
         </button>
 
         <select
+          aria-label="Filtrar por misión"
           value={filters.missionId ?? ''}
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
@@ -324,6 +337,7 @@ export default function GaleriaPage() {
         </select>
 
         <select
+          aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
           className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
@@ -349,7 +363,9 @@ export default function GaleriaPage() {
       </div>
 
       {photos.length === 0 && !loading && (
-        <p className="py-10 text-center text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
+        <EmptyState>
+          <p className="text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
+        </EmptyState>
       )}
 
       <div ref={sentinelRef} className="h-4" />

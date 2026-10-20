@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { EmptyState } from '@/components/EmptyState'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import type { Database } from '@/lib/database.types'
@@ -31,7 +32,11 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex animate-page flex-col bg-ink text-white">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex animate-page flex-col overscroll-contain bg-ink text-white"
+    >
       <div className="flex justify-end p-4">
         <button
           type="button"
@@ -128,15 +133,17 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-start gap-3 p-6">
-        <p className="text-base text-danger">{error}</p>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="h-12 rounded-full bg-fuchsia px-6 text-base font-bold text-white"
-        >
-          Reintentar
-        </button>
+      <div className="p-4">
+        <EmptyState>
+          <p className="text-base text-danger">{error}</p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="h-14 rounded-full bg-fuchsia px-8 text-base font-bold text-white shadow-soft"
+          >
+            Reintentar
+          </button>
+        </EmptyState>
       </div>
     )
   }
@@ -145,26 +152,32 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
   return (
     <div className="flex flex-col gap-8 pb-16">
-      <div className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose/60 bg-bg/95 px-4 py-3 backdrop-blur">
-        {chaptersWithPhotos.map((m) => (
-          <a
-            key={m.id}
-            href={`#capitulo-${m.id}`}
-            className="press flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
-          >
-            {m.emoji} {m.name}
-          </a>
-        ))}
-      </div>
+      {chaptersWithPhotos.length > 0 && (
+        <div className="sticky top-0 z-10 flex gap-2 overflow-x-auto border-b border-rose/60 bg-bg/95 px-4 py-3 backdrop-blur">
+          {chaptersWithPhotos.map((m) => (
+            <a
+              key={m.id}
+              href={`#capitulo-${m.id}`}
+              className="press flex h-12 shrink-0 items-center rounded-full border-2 border-rose bg-surface px-4 text-base font-bold text-ink"
+            >
+              {m.emoji} {m.name}
+            </a>
+          ))}
+        </div>
+      )}
 
       {chaptersWithPhotos.length === 0 && (
-        <p className="px-6 text-base text-ink/70">Todavía no hay fotos acá.</p>
+        <div className="px-4 pt-4">
+          <EmptyState>
+            <p className="text-base text-ink/70">Todavía no hay fotos acá.</p>
+          </EmptyState>
+        </div>
       )}
 
       {chaptersWithPhotos.map((milestone) => {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
-          <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex flex-col gap-3 px-4">
+          <section key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-3 px-4">
             <h2 className="font-display text-2xl text-ink">
               {milestone.emoji} {chapterTitle(milestone)}
             </h2>
@@ -181,6 +194,8 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                   <img
                     src={storage.getPublicUrl(photo.thumb_path)}
                     alt={photo.caption ?? ''}
+                    loading="lazy"
+                    decoding="async"
                     className="relative h-full w-full object-cover"
                   />
                 </button>
