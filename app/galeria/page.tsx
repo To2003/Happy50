@@ -10,6 +10,7 @@ import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
 import { EmptyState } from '@/components/EmptyState'
+import { Icon } from '@/components/Icon'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
@@ -47,7 +48,7 @@ function GridThumb({
       onClick={onOpen}
       style={stagger.style}
       onAnimationEnd={stagger.onAnimationEnd}
-      className={`relative aspect-square overflow-hidden rounded-2xl ${stagger.className ?? ''}`}
+      className={`relative aspect-square overflow-hidden rounded-xl ${stagger.className ?? ''}`}
     >
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
       <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
@@ -139,15 +140,15 @@ function Viewer({
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+          className="flex h-14 w-14 items-center justify-center rounded-full active:bg-white/10"
         >
-          ✕
+          <Icon name="x" className="h-7 w-7" />
         </button>
         {isOwn && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="h-12 rounded-full px-4 text-base font-bold text-card-rose active:bg-white/10"
+            className="h-12 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
           >
             Borrar
           </button>
@@ -165,11 +166,12 @@ function Viewer({
           onClick={() => void toggleHeart()}
           aria-pressed={hearted}
           disabled={!guest || busy}
-          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
+          aria-label={`Corazones: ${heartCount}`}
+          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-semibold disabled:opacity-40"
         >
-          <span key={popKey} className={popKey > 0 ? 'inline-block animate-pop' : 'inline-block'}>
-            {hearted ? '❤️' : '🤍'}
-          </span>{' '}
+          <span key={popKey} className={popKey > 0 ? 'inline-flex animate-pop' : 'inline-flex'}>
+            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-rose' : ''}`} />
+          </span>
           <span className="tabular-nums">{heartCount}</span>
         </button>
         {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
@@ -178,13 +180,13 @@ function Viewer({
       {confirmingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
           <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift animate-enter">
-            <p className="text-lg">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
+            <p className="font-display text-xl font-semibold leading-snug">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(false)}
                 disabled={busy}
-                className="h-14 flex-1 rounded-full border-2 border-rose bg-surface text-base font-bold text-ink disabled:opacity-40"
+                className="h-14 flex-1 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink disabled:opacity-40"
               >
                 No
               </button>
@@ -192,7 +194,7 @@ function Viewer({
                 type="button"
                 onClick={() => void confirmDelete()}
                 disabled={busy}
-                className="h-14 flex-1 rounded-full bg-danger text-base font-bold text-white disabled:opacity-40"
+                className="h-14 flex-1 rounded-full bg-danger text-base font-semibold text-white disabled:opacity-40"
               >
                 {busy ? 'Borrando...' : 'Sí, borrar'}
               </button>
@@ -306,17 +308,19 @@ export default function GaleriaPage() {
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen animate-page flex-col gap-4 px-4 py-8">
-      <h1 className="text-balance font-display text-3xl text-ink">Galería</h1>
+    <main className="flex min-h-screen animate-page flex-col gap-6 px-4 pb-12 pt-10">
+      <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">Galería</h1>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          className={`h-12 rounded-full px-4 text-base font-bold ${
-            filters.onlyMine ? 'bg-fuchsia text-white' : 'border-2 border-rose bg-surface text-ink'
+          aria-pressed={filters.onlyMine}
+          className={`flex h-12 items-center gap-1.5 rounded-full px-4 text-base font-semibold ${
+            filters.onlyMine ? 'bg-fuchsia text-white' : 'border border-ink/20 bg-surface text-ink'
           }`}
         >
+          {filters.onlyMine && <Icon name="check" className="h-4 w-4" />}
           Mis fotos
         </button>
 
@@ -326,7 +330,7 @@ export default function GaleriaPage() {
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
+          className="h-12 min-w-0 max-w-full rounded-full border border-ink/20 bg-surface px-4 text-base font-semibold text-ink"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -340,7 +344,7 @@ export default function GaleriaPage() {
           aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
+          className="h-12 min-w-0 max-w-full rounded-full border border-ink/20 bg-surface px-4 text-base font-semibold text-ink"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -351,7 +355,7 @@ export default function GaleriaPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1.5">
         {photos.map((photo) => (
           <GridThumb
             key={photo.id}
