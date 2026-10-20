@@ -2,6 +2,7 @@ import { storage } from '@/lib/storage'
 import { insertPhoto } from '@/lib/photos'
 import { getSnapshot, subscribe, updateItem, type QueueItem } from '@/lib/uploadQueue'
 import { retryDelayMs } from '@/lib/uploadErrors'
+import { runWithRetries } from '@/lib/retry'
 
 // SPEC.md sección 8: 3 intentos, backoff exponencial. Una foto por vez: es el
 // tope de subidas simultáneas (con wifi malo, dos a la vez se pisan).
@@ -54,27 +55,13 @@ async function uploadOnce(item: QueueItem): Promise<void> {
 }
 
 async function uploadWithRetries(item: QueueItem): Promise<void> {
-  for (let attempt = item.attempts; attempt < MAX_ATTEMPTS; attempt++) {
-    await waitForOnline()
-    try {
-      await uploadOnce(item)
-      return
-    } catch (err) {
-      // Se cortó la conexión en el medio: no cuenta como intento fallido.
-      if (isOffline()) {
-        attempt--
-        continue
-      }
-      const nextAttempt = attempt + 1
-      await updateItem(item.id, { attempts: nextAttempt })
-
-      if (nextAttempt >= MAX_ATTEMPTS) {
-        throw err
-      }
-
-      await delay(retryDelayMs(attempt))
-    }
-  }
+  await runWithRetries(() => uploadOnce(item), item.attempts, MAX_ATTEMPTS, {
+    isOffline,
+    waitForOnline,
+    delay,
+    delayFor: retryDelayMs,
+    onFailedAttempt: (attempts) => updateItem(item.id, { attempts }),
+  })
 }
 
 async function processNext(): Promise<boolean> {
