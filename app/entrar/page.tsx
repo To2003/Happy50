@@ -77,7 +77,7 @@ function EntrarForm() {
   }
 
   return (
-    <main className="flex min-h-svh flex-col justify-center gap-8 px-6 py-12">
+    <main id="contenido" className="flex min-h-svh flex-col justify-center gap-8 px-6 py-12">
       <div className="flex animate-enter flex-col gap-6">
         <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">
           ¿Cómo te llamás?

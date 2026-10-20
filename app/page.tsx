@@ -35,7 +35,7 @@ function Bienvenida() {
   const entrarHref = mesa ? `/entrar?mesa=${encodeURIComponent(mesa)}` : '/entrar'
 
   return (
-    <main className="flex min-h-svh flex-col justify-between gap-10 px-6 pb-10 pt-12">
+    <main id="contenido" className="flex min-h-svh flex-col justify-between gap-10 px-6 pb-10 pt-12">
       <h1 className="animate-enter font-display leading-[0.8]">
         <span className="block text-[min(64vw,44svh)] font-semibold tracking-[-0.05em] text-fuchsia">
           50{' '}
