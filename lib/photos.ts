@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { isUniqueViolation } from '@/lib/uploadErrors'
 
 interface InsertPhotoInput {
   id: string
@@ -46,7 +47,8 @@ export async function insertPhoto(input: InsertPhotoInput): Promise<void> {
     taken_at: input.takenAt,
   })
 
-  if (error) {
+  // 23505: el insert anterior llegó pero se perdió la respuesta; ya está guardada.
+  if (error && !isUniqueViolation(error)) {
     throw new Error('No se pudo guardar la foto, la reintentamos sola.')
   }
 }

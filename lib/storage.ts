@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { isAlreadyExistsError } from '@/lib/uploadErrors'
 
 const BUCKET = 'photos'
 
@@ -19,7 +20,8 @@ export const storage: Storage = {
       upsert: false,
     })
 
-    if (error) {
+    // Idempotente: si un intento anterior ya la guardó, el reintento no falla.
+    if (error && !isAlreadyExistsError(error)) {
       throw new Error('No se pudo subir, lo vamos a reintentar solos.')
     }
   },
