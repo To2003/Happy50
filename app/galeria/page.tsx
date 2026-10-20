@@ -5,7 +5,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import { findExistingGuest, type Guest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
-import { deleteOwnPhoto } from '@/lib/photos'
+import { DeletePhotoError, deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
@@ -134,10 +134,11 @@ function Viewer({
       await deleteOwnPhoto(photo.id)
       onDeleted(photo.id)
       onClose()
-    } catch {
+    } catch (err) {
       setBusy(false)
       setConfirmingDelete(false)
-      onError('No se pudo borrar la foto. Probá de nuevo.')
+      // DeletePhotoError ya trae el mensaje para el invitado según el código.
+      onError(err instanceof DeletePhotoError ? err.message : 'No se pudo borrar la foto. Probá de nuevo.')
     }
   }
 
