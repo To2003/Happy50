@@ -3,9 +3,15 @@ import type { ProcessedPhoto } from './types'
 
 // SPEC.md sección 8: dos versiones, con objetivo de peso, bajando calidad
 // iterativamente si hace falta.
-const DISPLAY_MAX_SIDE = 1600
-const DISPLAY_TARGET_BYTES = 300 * 1024
-const DISPLAY_START_QUALITY = 0.82
+//
+// El original nunca se sube: la versión "display" es lo que queda guardado y
+// lo que usa el book impreso. Con la bandera en true la display pasa a 2400 px
+// a calidad 0,85 (mejor impresión, ~3 veces más peso y egress). Apagada por
+// defecto porque cambia lo que se guarda; ver docs/NOCHE.md antes de prenderla.
+export const ENABLE_HIGH_RES_DISPLAY = false
+const DISPLAY_MAX_SIDE = ENABLE_HIGH_RES_DISPLAY ? 2400 : 1600
+const DISPLAY_TARGET_BYTES = (ENABLE_HIGH_RES_DISPLAY ? 900 : 300) * 1024
+const DISPLAY_START_QUALITY = ENABLE_HIGH_RES_DISPLAY ? 0.85 : 0.82
 
 const THUMB_MAX_SIDE = 400
 const THUMB_TARGET_BYTES = 40 * 1024
