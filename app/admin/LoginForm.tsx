@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { loginAdminAction } from './actions'
+import { Button } from '@/components/Button'
+import { Input } from '@/components/Field'
 
 export function LoginForm() {
   const router = useRouter()
@@ -25,25 +27,33 @@ export function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6">
-      <h1 className="font-display text-3xl font-semibold">Admin</h1>
-      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-        <input
+    <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-6">
+      <div className="flex flex-col gap-6">
+        <h1 className="font-display text-4xl font-semibold leading-none text-ink">Admin</h1>
+        <div className="scallop-edge" />
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Input
           type="password"
+          name="password"
+          autoComplete="current-password"
+          aria-label="Contraseña"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Contraseña"
+          invalid={!!error}
+          aria-describedby={error ? 'login-error' : undefined}
           autoFocus
-          className="h-14 rounded-lg bg-surface px-4 text-lg outline-none ring-fuchsia focus:ring-2"
+          className="text-lg"
         />
-        {error && <p className="text-danger">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading || !password}
-          className="h-14 rounded-lg bg-fuchsia text-white text-lg font-bold disabled:opacity-40"
-        >
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
+        {error && (
+          <p id="login-error" role="alert" className="text-base text-danger">
+            {error}
+          </p>
+        )}
+        <Button type="submit" size="lg" disabled={!password} loading={loading}>
+          {loading ? 'Entrando…' : 'Entrar'}
+        </Button>
       </form>
     </main>
   )
