@@ -41,7 +41,7 @@ function QueueThumb({ blob }: { blob: Blob }) {
     return () => URL.revokeObjectURL(objectUrl)
   }, [blob])
 
-  if (!url) return <div className="h-16 w-16 shrink-0 rounded-2xl bg-rose/30" />
+  if (!url) return <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
 
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
@@ -49,15 +49,16 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
+    <li className="flex animate-enter items-center gap-3 rounded-2xl bg-surface p-3 shadow-soft">
       {item.thumbBlob ? (
         <QueueThumb blob={item.thumbBlob} />
       ) : (
-        <div className="h-16 w-16 shrink-0 rounded-2xl bg-rose/30" />
+        <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
       )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-base text-ink/70">{item.fileName}</p>
-        <p className="text-base font-bold text-ink">
+        {/* key por estado: cada cambio de estado entra con un fade corto. */}
+        <p key={item.status} className="animate-enter text-base font-bold text-ink">
           {STATUS_LABEL[item.status]}
           {item.status === 'uploading' &&
             typeof item.progressPercent === 'number' &&
@@ -229,6 +230,7 @@ function SubirScreen() {
       <TopNav />
       <Confetti trigger={confettiTrigger} />
 
+      {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
       <main className="flex min-h-screen flex-col gap-6 pb-10">
         <section
           className="relative flex min-h-[280px] flex-col justify-end gap-2 bg-cover bg-center px-6 py-8"
@@ -236,16 +238,16 @@ function SubirScreen() {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
           <div className="relative flex flex-col gap-1">
-            <h1 className="font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
-            <p className="text-base text-white/90">
+            <h1 className="animate-enter text-balance font-display text-4xl leading-tight text-white">¡Sumate a la fiesta!</h1>
+            <p className="animate-enter text-base text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
-            <p className="mt-1 text-base font-bold text-white">{nightCounterLabel(photoCount)}</p>
+            <p className="mt-1 animate-enter text-base font-bold text-white [animation-delay:120ms]">{nightCounterLabel(photoCount)}</p>
           </div>
         </section>
         <div className="scallop-edge" />
 
-        <div className="flex flex-col gap-6 px-6">
+        <div className="flex animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
               <button
@@ -301,7 +303,8 @@ function SubirScreen() {
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-rose bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/40 focus:ring-2 focus:ring-fuchsia"
+                aria-label="Epígrafe (opcional)"
+                className="h-14 rounded-2xl border border-rose bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:ring-2 focus:ring-fuchsia"
               />
 
               {missions.length > 0 && (
@@ -354,7 +357,7 @@ function SubirScreen() {
           )}
 
           {queue.length > 0 && (
-            <ul className="flex flex-col gap-2">
+            <ul aria-live="polite" className="flex flex-col gap-2">
               {queue.map((item) => (
                 <QueueRow key={item.id} item={item} onRetry={retryItem} />
               ))}

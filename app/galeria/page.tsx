@@ -9,6 +9,8 @@ import { deleteOwnPhoto } from '@/lib/photos'
 import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
+import { EmptyState } from '@/components/EmptyState'
+import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -29,12 +31,34 @@ const EMPTY_FILTERS: Filters = {
   onlyMine: false,
 }
 
-function GridThumb({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
+function GridThumb({
+  photo,
+  onOpen,
+  stagger,
+}: {
+  photo: Photo
+  onOpen: () => void
+  stagger: StaggerProps
+}) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
-    <button type="button" onClick={onOpen} className="aspect-square overflow-hidden rounded-lg">
+    <button
+      type="button"
+      onClick={onOpen}
+      style={stagger.style}
+      onAnimationEnd={stagger.onAnimationEnd}
+      className={`relative aspect-square overflow-hidden rounded-2xl ${stagger.className ?? ''}`}
+    >
+      {/* Placeholder de carga: la foto lo tapa apenas llega. */}
+      <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt={photo.caption ?? ''} className="h-full w-full object-cover" />
+      <img
+        src={url}
+        alt={photo.caption ?? ''}
+        loading="lazy"
+        decoding="async"
+        className="relative h-full w-full object-cover"
+      />
     </button>
   )
 }
@@ -54,6 +78,8 @@ function Viewer({
   const [heartCount, setHeartCount] = useState(photo.hearts)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Solo cambia al dar corazón: así el pop no se dispara al abrir el visor.
+  const [popKey, setPopKey] = useState(0)
 
   useEffect(() => {
     if (!guest) return
@@ -78,6 +104,7 @@ function Viewer({
         await addHeart(photo.id, guest.id)
         setHearted(true)
         setHeartCount((count) => count + 1)
+        setPopKey((key) => key + 1)
       }
     } catch {
       // El corazón no cambió: el estado optimista no se tocó, no hace falta revertir nada visible.
@@ -102,16 +129,25 @@ function Viewer({
   const url = storage.getPublicUrl(photo.storage_path)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex animate-page flex-col overscroll-contain bg-ink text-white"
+    >
       <div className="flex items-center justify-between p-4">
-        <button type="button" onClick={onClose} className="text-2xl">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+        >
           ✕
         </button>
         {isOwn && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="text-sm text-red-400"
+            className="h-12 rounded-full px-4 text-base font-bold text-card-rose active:bg-white/10"
           >
             Borrar
           </button>
@@ -127,24 +163,28 @@ function Viewer({
         <button
           type="button"
           onClick={() => void toggleHeart()}
+          aria-pressed={hearted}
           disabled={!guest || busy}
-          className="flex h-12 items-center gap-2 rounded-lg bg-neutral-900 px-4 text-lg disabled:opacity-40"
+          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
         >
-          {hearted ? '❤️' : '🤍'} {heartCount}
+          <span key={popKey} className={popKey > 0 ? 'inline-block animate-pop' : 'inline-block'}>
+            {hearted ? '❤️' : '🤍'}
+          </span>{' '}
+          <span className="tabular-nums">{heartCount}</span>
         </button>
-        {photo.caption && <p className="flex-1 truncate text-neutral-300">{photo.caption}</p>}
+        {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
       </div>
 
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-lg bg-neutral-900 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift animate-enter">
             <p className="text-lg">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(false)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-lg bg-neutral-800 font-medium disabled:opacity-40"
+                className="h-14 flex-1 rounded-full border-2 border-rose bg-surface text-base font-bold text-ink disabled:opacity-40"
               >
                 No
               </button>
@@ -152,7 +192,7 @@ function Viewer({
                 type="button"
                 onClick={() => void confirmDelete()}
                 disabled={busy}
-                className="h-12 flex-1 rounded-lg bg-red-600 font-bold disabled:opacity-40"
+                className="h-14 flex-1 rounded-full bg-danger text-base font-bold text-white disabled:opacity-40"
               >
                 {busy ? 'Borrando...' : 'Sí, borrar'}
               </button>
@@ -170,11 +210,16 @@ export default function GaleriaPage() {
   const [tables, setTables] = useState<PartyTable[]>([])
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [loading, setLoading] = useState(false)
+  // Arranca en true: la primera tanda es la única que entra escalonada.
+  const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const staggerFor = useInitialStagger(
+    photos.map((photo) => photo.id),
+    !loading,
+  )
   const loadingRef = useRef(false)
 
   useEffect(() => {
@@ -261,26 +306,27 @@ export default function GaleriaPage() {
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
-      <h1 className="text-2xl font-bold">Galería</h1>
+    <main className="flex min-h-screen animate-page flex-col gap-4 px-4 py-8">
+      <h1 className="text-balance font-display text-3xl text-ink">Galería</h1>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          className={`h-10 rounded-lg px-3 text-sm font-medium ${
-            filters.onlyMine ? 'bg-pink-600' : 'bg-neutral-900'
+          className={`h-12 rounded-full px-4 text-base font-bold ${
+            filters.onlyMine ? 'bg-fuchsia text-white' : 'border-2 border-rose bg-surface text-ink'
           }`}
         >
           Mis fotos
         </button>
 
         <select
+          aria-label="Filtrar por misión"
           value={filters.missionId ?? ''}
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="h-10 rounded-lg bg-neutral-900 px-3 text-sm"
+          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -291,9 +337,10 @@ export default function GaleriaPage() {
         </select>
 
         <select
+          aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="h-10 rounded-lg bg-neutral-900 px-3 text-sm"
+          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -306,12 +353,19 @@ export default function GaleriaPage() {
 
       <div className="grid grid-cols-3 gap-2">
         {photos.map((photo) => (
-          <GridThumb key={photo.id} photo={photo} onOpen={() => setViewerPhoto(photo)} />
+          <GridThumb
+            key={photo.id}
+            photo={photo}
+            onOpen={() => setViewerPhoto(photo)}
+            stagger={staggerFor(photo.id)}
+          />
         ))}
       </div>
 
       {photos.length === 0 && !loading && (
-        <p className="text-center text-neutral-400">Todavía no hay fotos con estos filtros.</p>
+        <EmptyState>
+          <p className="text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
+        </EmptyState>
       )}
 
       <div ref={sentinelRef} className="h-4" />

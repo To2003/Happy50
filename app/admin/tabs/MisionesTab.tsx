@@ -64,16 +64,16 @@ export function MisionesTab() {
     }
   }
 
-  if (loading) return <p className="text-neutral-400">Cargando...</p>
+  if (loading) return <p className="text-ink/70">Cargando...</p>
 
   if (error && missions.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-red-400">{error}</p>
+        <p className="text-danger">{error}</p>
         <button
           type="button"
           onClick={() => void load()}
-          className="h-10 rounded-lg bg-pink-600 px-4 text-sm font-bold"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
         >
           Reintentar
         </button>
@@ -83,45 +83,45 @@ export function MisionesTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg bg-neutral-900 p-4">
-        <label className="flex flex-col gap-1 text-sm text-neutral-400">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg bg-surface p-4">
+        <label className="flex flex-col gap-1 text-sm text-ink/70">
           Emoji
           <input
             value={emoji}
             onChange={(event) => setEmoji(event.target.value)}
-            className="h-10 w-16 rounded-lg bg-neutral-800 px-3 text-white"
+            className="h-11 w-16 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
-        <label className="flex flex-1 flex-col gap-1 text-sm text-neutral-400">
+        <label className="flex flex-1 flex-col gap-1 text-sm text-ink/70">
           Título
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="h-10 rounded-lg bg-neutral-800 px-3 text-white"
+            className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
           />
         </label>
         <button
           type="button"
           onClick={() => void handleCreate()}
           disabled={!title.trim()}
-          className="h-10 rounded-lg bg-pink-600 px-4 text-sm font-bold disabled:opacity-40"
+          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
         >
           Agregar
         </button>
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <ul className="flex flex-col gap-2">
         {missions.map((mission) => (
-          <li key={mission.id} className="flex items-center gap-3 rounded-lg bg-neutral-900 p-3">
+          <li key={mission.id} className="flex items-center gap-3 rounded-lg bg-surface p-3">
             <p className="flex-1">
               {mission.emoji} {mission.title}
             </p>
             <button
               type="button"
               onClick={() => void toggleActive(mission)}
-              className={`h-10 rounded-lg px-3 text-sm font-medium ${
-                mission.active ? 'bg-neutral-800' : 'bg-neutral-700 text-neutral-400'
+              className={`h-11 rounded-lg px-3 text-sm font-medium ${
+                mission.active ? 'bg-rose/20' : 'bg-rose/40 text-ink/80'
               }`}
             >
               {mission.active ? 'Activa' : 'Inactiva'}
@@ -129,7 +129,7 @@ export function MisionesTab() {
             <button
               type="button"
               onClick={() => void handleDelete(mission.id)}
-              className="h-10 rounded-lg bg-red-900 px-3 text-sm font-medium"
+              className="h-11 rounded-lg bg-danger text-white px-3 text-sm font-medium"
             >
               Borrar
             </button>

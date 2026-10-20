@@ -209,7 +209,7 @@ Grilla de miniaturas, scroll infinito, filtros por misión / momento / mesa / "M
 En el visor, si la foto es propia, aparece un botón de borrar con confirmación (borrado lógico, ver sección 6).
 
 ### `/tv` — Pantalla proyectada
-Modo kiosko, fondo oscuro, sin ningún control visible.
+Modo kiosko, sin ningún control visible.
 - Slideshow a pantalla completa, 6 segundos por foto, transición cross-fade.
 - Prioriza fotos nuevas: cuando entra una por Realtime, la mete en la cola para mostrarla dentro de los próximos 20 segundos, con un cartelito discreto de "Recién subida por Marta".
 - Cuando no hay fotos nuevas, cicla el histórico sin repetir hasta agotar.
@@ -335,7 +335,7 @@ durante la fiesta.
 ## 12. Diseño visual
 
 Nada de dashboard genérico. Es una fiesta.
-- Modo oscuro por defecto: se usa de noche y en penumbra.
+- Modo claro: paleta crema/rosa con fucsia y dorado de acento (tokens en `tailwind.config.ts`).
 - Tipografía con carácter para títulos, algo legible para el resto.
 - Botones grandes, contraste alto, targets táctiles de 56px mínimo.
 - Micro-animaciones al subir una foto: que se sienta que pasó algo lindo.

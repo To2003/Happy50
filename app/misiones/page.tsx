@@ -7,6 +7,8 @@ import { storage } from '@/lib/storage'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { TopNav } from '@/components/TopNav'
+import { EmptyState } from '@/components/EmptyState'
+import { useInitialStagger } from '@/lib/useInitialStagger'
 
 interface Completion {
   missionId: string
@@ -22,6 +24,10 @@ export default function MisionesPage() {
   const [completions, setCompletions] = useState<Map<string, Completion>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const staggerFor = useInitialStagger(
+    missions.map((mission) => mission.id),
+    !checkingGuest && !loading && !error,
+  )
 
   async function load() {
     setLoading(true)
@@ -72,15 +78,17 @@ export default function MisionesPage() {
     return (
       <>
         <TopNav />
-        <main className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-base text-danger">{error}</p>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="h-12 rounded-full bg-fuchsia px-6 text-base font-bold text-white"
-          >
-            Reintentar
-          </button>
+        <main className="flex min-h-[70vh] flex-col justify-center px-6">
+          <EmptyState>
+            <p className="text-base text-danger">{error}</p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="h-14 rounded-full bg-fuchsia px-8 text-base font-bold text-white shadow-soft"
+            >
+              Reintentar
+            </button>
+          </EmptyState>
         </main>
       </>
     )
@@ -93,19 +101,19 @@ export default function MisionesPage() {
   return (
     <>
       <TopNav />
-      <main className="flex min-h-screen flex-col gap-6 px-6 py-8">
+      <main className="flex min-h-screen animate-page flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h1 className="font-display text-3xl text-ink">Misiones</h1>
-            <span className="text-base font-bold text-ink">
+            <h1 className="text-balance font-display text-3xl text-ink">Misiones</h1>
+            <span className="text-base font-bold tabular-nums text-ink">
               {doneCount}/{totalCount}
             </span>
           </div>
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
           <div className="h-3 w-full overflow-hidden rounded-full bg-rose/30">
             <div
-              className="h-full rounded-full bg-gold transition-all"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full origin-left rounded-full bg-gold transition-transform duration-400 ease-out"
+              style={{ transform: `scaleX(${progressPercent / 100})` }}
             />
           </div>
         </div>
@@ -115,12 +123,15 @@ export default function MisionesPage() {
             const completion = completions.get(mission.id)
             const isDone = !!completion
             const pastel = PASTELS[index % PASTELS.length]
+            const stagger = staggerFor(mission.id)
 
             return (
               <a
                 key={mission.id}
                 href={`/subir?mission=${mission.id}`}
-                className={`relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-sm ${pastel}`}
+                style={stagger.style}
+                onAnimationEnd={stagger.onAnimationEnd}
+                className={`press ${stagger.className ?? ''} relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-3 text-center shadow-soft ${pastel}`}
               >
                 {isDone && (
                   // eslint-disable-next-line @next/next/no-img-element

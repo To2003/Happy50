@@ -34,13 +34,13 @@ export function LoginForm() {
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Contraseña"
           autoFocus
-          className="h-14 rounded-lg bg-neutral-900 px-4 text-lg outline-none ring-pink-600 focus:ring-2"
+          className="h-14 rounded-lg bg-surface px-4 text-lg outline-none ring-fuchsia focus:ring-2"
         />
-        {error && <p className="text-red-400">{error}</p>}
+        {error && <p className="text-danger">{error}</p>}
         <button
           type="submit"
           disabled={loading || !password}
-          className="h-14 rounded-lg bg-pink-600 text-lg font-bold disabled:opacity-40"
+          className="h-14 rounded-lg bg-fuchsia text-white text-lg font-bold disabled:opacity-40"
         >
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
