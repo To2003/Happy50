@@ -137,7 +137,6 @@ function SubirScreen() {
   const [missionId, setMissionId] = useState<string | null>(presetMissionId)
   const [missions, setMissions] = useState<Mission[]>([])
   const [preparing, setPreparing] = useState(false)
-  const [stagingError, setStagingError] = useState<string | null>(null)
   const [confettiTrigger, setConfettiTrigger] = useState(0)
 
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -214,7 +213,6 @@ function SubirScreen() {
     }))
 
     setStaged((current) => [...current, ...next])
-    setStagingError(null)
     event.target.value = ''
   }
 
@@ -224,15 +222,15 @@ function SubirScreen() {
     }
     setStaged([])
     setCaption('')
-    setStagingError(null)
   }
 
   async function confirmUpload() {
     setPreparing(true)
-    setStagingError(null)
 
+    // La selección queda a la vista (con "Preparando…") hasta que todas las
+    // fotos están procesadas y en la cola; antes desaparecía al instante y no
+    // había ninguna señal mientras se procesaban.
     const toProcess = staged
-    setStaged([])
 
     let anyFailed = false
 
@@ -259,14 +257,15 @@ function SubirScreen() {
           })
         } catch {
           anyFailed = true
-        } finally {
-          URL.revokeObjectURL(staged_.previewUrl)
         }
       }),
     )
 
+    for (const item of toProcess) URL.revokeObjectURL(item.previewUrl)
+    setStaged([])
     if (anyFailed) {
-      setStagingError('Una de las fotos no se pudo procesar. Las demás ya están en la cola.')
+      // Va como toast: el bloque de la selección ya no está para mostrarlo.
+      showToast('Una de las fotos no se pudo procesar. Las demás ya están en la cola.', 'error')
     }
 
     setCaption('')
@@ -400,8 +399,6 @@ function SubirScreen() {
                   </div>
                 </div>
               )}
-
-              {stagingError && <p className="text-base text-danger">{stagingError}</p>}
 
               <div className="flex gap-3">
                 <Button variant="secondary" onClick={cancelStaged} disabled={preparing} className="flex-1 px-4">
