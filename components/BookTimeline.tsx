@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/Icon'
+import { Button, buttonClasses } from '@/components/Button'
+import { useDialogBehavior } from '@/components/Dialog'
+import { Skeleton } from '@/components/Skeleton'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import type { Database } from '@/lib/database.types'
@@ -31,6 +34,7 @@ function chapterTitle(milestone: Milestone): string {
 
 function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
   const url = storage.getPublicUrl(photo.storage_path)
+  useDialogBehavior(onClose)
 
   return (
     <div
@@ -137,20 +141,29 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableFilter?.id])
 
-  if (loading) return <p className="p-6 text-base text-ink/70">Cargando...</p>
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 px-4 pt-6" aria-busy="true">
+        <span className="sr-only">Cargando…</span>
+        <Skeleton className="h-8 w-2/3 rounded-lg" />
+        <div className="grid grid-cols-3 gap-1.5">
+          <Skeleton className="col-span-2 row-span-2 aspect-square rounded-xl" />
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} className="aspect-square rounded-xl" />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   if (error) {
     return (
       <div className="p-4">
-        <EmptyState>
+        <EmptyState icon="alert">
           <p className="text-base text-danger">{error}</p>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="h-14 rounded-full bg-fuchsia px-8 text-base font-bold text-white shadow-soft"
-          >
+          <Button icon="retry" onClick={() => void load()}>
             Reintentar
-          </button>
+          </Button>
         </EmptyState>
       </div>
     )
@@ -178,8 +191,8 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
       )}
 
       {chaptersWithPhotos.length === 0 && (
-        <div className="px-4 pt-4">
-          <EmptyState>
+        <div className="px-4">
+          <EmptyState icon="book">
             <p className="text-base text-ink/70">Todavía no hay fotos acá.</p>
           </EmptyState>
         </div>
@@ -227,7 +240,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
               <Link
                 key={table.id}
                 href={`/book/mesa/${table.code}`}
-                className="press flex h-12 items-center rounded-full border border-ink/20 bg-surface px-5 text-base font-semibold text-ink"
+                className={buttonClasses('secondary', 'sm', 'h-12 text-base')}
               >
                 {table.label ?? `Mesa ${table.code}`}
               </Link>
