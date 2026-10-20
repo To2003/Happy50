@@ -4,7 +4,7 @@ import { CreditFooter } from '@/components/CreditFooter'
 
 export default function BookPage() {
   return (
-    <main id="contenido" className="min-h-screen animate-page">
+    <main id="contenido" className="mx-auto min-h-screen w-full max-w-5xl animate-page">
       <div className="px-4 pb-6 pt-10">
         <PageHeader title="El book de la noche" />
       </div>

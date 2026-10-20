@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'No encontramos esta página' }
 // 404 con la identidad de la home: el número grande hace de título visual.
 export default function NotFound() {
   return (
-    <main id="contenido" className="flex min-h-svh flex-col justify-between gap-10 px-6 pb-10 pt-12">
+    <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-between gap-10 px-6 pb-10 pt-12">
       <p aria-hidden className="font-display text-[min(56vw,40svh)] font-semibold leading-[0.8] tracking-[-0.05em] text-fuchsia/20">
         404
       </p>

@@ -283,7 +283,7 @@ function SubirScreen() {
             "Sacar foto" visible sin scrollear a 360x640. Sin foto: campo bordó
             del alto de su contenido. */}
         <section
-          className={`relative flex flex-col justify-end overflow-hidden bg-ink px-6 pb-6 text-white ${
+          className={`relative flex flex-col justify-end overflow-hidden bg-ink pb-6 text-white ${
             HERO_PHOTO ? 'h-[42svh] min-h-[240px]' : 'pt-12'
           }`}
         >
@@ -300,7 +300,7 @@ function SubirScreen() {
               <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink/85 to-transparent" />
             </>
           )}
-          <div className="relative flex flex-col gap-2">
+          <div className="relative mx-auto flex w-full max-w-xl flex-col gap-2 px-6">
             <h1 className="animate-enter text-balance font-display text-4xl font-semibold leading-none">
               ¡Sumate a la fiesta!
             </h1>
@@ -318,7 +318,7 @@ function SubirScreen() {
         </section>
         <div className="scallop-edge" />
 
-        <div className="flex animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
+        <div className="mx-auto flex w-full max-w-xl animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
               <Button size="lg" icon="camera" onClick={() => cameraInputRef.current?.click()}>

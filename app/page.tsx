@@ -37,7 +37,7 @@ function Bienvenida() {
 
   return (
     <>
-      <main id="contenido" className="flex min-h-svh flex-col justify-between gap-10 px-6 pb-10 pt-12">
+      <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-between gap-10 px-6 pb-10 pt-12">
         <h1 className="animate-enter font-display leading-[0.8]">
           <span className="block text-[min(64vw,44svh)] font-semibold tracking-[-0.05em] text-fuchsia">
             50{' '}

@@ -342,7 +342,7 @@ export default function GaleriaPage() {
   return (
     <>
     <TopNav />
-    <main id="contenido" className="flex min-h-screen animate-page flex-col gap-6 px-4 pb-12 pt-10">
+    <main id="contenido" className="mx-auto flex min-h-screen w-full max-w-5xl animate-page flex-col gap-6 px-4 pb-12 pt-10">
       <PageHeader title="Galería" />
 
       <div className="flex flex-wrap gap-2">
@@ -359,7 +359,7 @@ export default function GaleriaPage() {
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="w-auto max-w-full"
+          className="flex-1 basis-40"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -373,7 +373,7 @@ export default function GaleriaPage() {
           aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="w-auto max-w-full"
+          className="flex-1 basis-40"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -384,7 +384,7 @@ export default function GaleriaPage() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5">
         {photos.map((photo) => (
           <GridThumb
             key={photo.id}

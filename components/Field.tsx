@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes } from 'react'
 
 const BASE =
-  'h-14 w-full min-w-0 rounded-2xl border bg-surface px-4 text-base text-ink placeholder:text-ink/70 disabled:opacity-40'
+  'h-14 min-w-0 rounded-2xl border bg-surface px-4 text-base text-ink placeholder:text-ink/70 disabled:opacity-40'
 
 // `invalid` pinta el borde de error; el mensaje va aparte, al lado del campo.
 export function Input({
@@ -12,7 +12,7 @@ export function Input({
   return (
     <input
       aria-invalid={invalid || undefined}
-      className={`${BASE} ${invalid ? 'border-danger' : 'border-ink/20'} ${className}`}
+      className={`${BASE} w-full ${invalid ? 'border-danger' : 'border-ink/20'} ${className}`}
       {...rest}
     />
   )

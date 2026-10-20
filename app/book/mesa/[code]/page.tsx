@@ -28,7 +28,7 @@ export default function BookMesaPage() {
 
   if (table === null) {
     return (
-      <main id="contenido" className="flex min-h-screen flex-col justify-center px-4">
+      <main id="contenido" className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-4">
         <EmptyState icon="book">
           <p className="text-base text-ink/70">No encontramos esa mesa.</p>
         </EmptyState>
@@ -37,7 +37,7 @@ export default function BookMesaPage() {
   }
 
   return (
-    <main id="contenido" className="min-h-screen">
+    <main id="contenido" className="mx-auto min-h-screen w-full max-w-5xl">
       <div className="px-4 pb-6 pt-10">
         <PageHeader title={`El book de ${table.label}`} />
       </div>

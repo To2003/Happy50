@@ -82,11 +82,11 @@ export default function MisionesPage() {
     return (
       <>
         <TopNav />
-        <main className="flex min-h-screen flex-col gap-8 px-4 pb-12 pt-10" aria-busy="true">
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-4 pb-12 pt-10" aria-busy="true">
           <PageHeader title="Misiones">
             <Skeleton className="h-1.5 w-full rounded-full" />
           </PageHeader>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} className="aspect-square rounded-2xl" />
             ))}
@@ -100,7 +100,7 @@ export default function MisionesPage() {
     return (
       <>
         <TopNav />
-        <main className="flex min-h-screen flex-col gap-8 px-4 pb-12 pt-10">
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-4 pb-12 pt-10">
           <PageHeader title="Misiones" />
           <EmptyState icon="alert">
             <p className="text-base text-danger">{error}</p>
@@ -120,7 +120,7 @@ export default function MisionesPage() {
   return (
     <>
       <TopNav />
-      <main id="contenido" className="flex min-h-screen animate-page flex-col gap-8 px-4 pb-12 pt-10">
+      <main id="contenido" className="mx-auto flex min-h-screen w-full max-w-5xl animate-page flex-col gap-8 px-4 pb-12 pt-10">
         <PageHeader
           title="Misiones"
           aside={
@@ -138,7 +138,7 @@ export default function MisionesPage() {
           </div>
         </PageHeader>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {missions.map((mission, index) => {
             const completion = completions.get(mission.id)
             const isDone = !!completion

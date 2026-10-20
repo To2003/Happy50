@@ -252,7 +252,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
               {chapterTitle(milestone)}
             </h2>
             {/* La primera foto de cada capítulo va grande, como apertura de página. */}
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5">
               {photos.map((photo, index) => (
                 <button
                   key={photo.id}
