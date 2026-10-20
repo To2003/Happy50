@@ -73,6 +73,7 @@ export async function startMilestoneAction(milestoneId: string): Promise<ActionR
 interface RecentPhotoForReassign {
   id: string
   storage_path: string
+  thumb_path: string
   taken_at: string
   milestone_id: string | null
   milestone_override_id: string | null
@@ -83,7 +84,7 @@ export async function getRecentPhotosForReassignAction(): Promise<RecentPhotoFor
   const supabase = getAdminSupabaseClient()
   const { data, error } = await supabase
     .from('photos')
-    .select('id, storage_path, taken_at, milestone_id, milestone_override_id')
+    .select('id, storage_path, thumb_path, taken_at, milestone_id, milestone_override_id')
     .order('taken_at', { ascending: false })
     .limit(60)
   if (error || !data) throw new Error('No se pudieron cargar las fotos.')

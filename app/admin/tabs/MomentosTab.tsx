@@ -24,6 +24,7 @@ type Milestone = Database['public']['Tables']['milestones']['Row']
 interface RecentPhoto {
   id: string
   storage_path: string
+  thumb_path: string
   taken_at: string
   milestone_id: string | null
   milestone_override_id: string | null
@@ -252,7 +253,7 @@ export function MomentosTab() {
                 <td className="px-3 py-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={storage.getPublicUrl(photo.storage_path)}
+                    src={storage.getPublicUrl(photo.thumb_path)}
                     alt=""
                     loading="lazy"
                     className="h-14 w-14 min-w-14 max-w-none rounded-xl object-cover"
