@@ -6,13 +6,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
 import { runPipeline } from '@/lib/pipeline/runPipeline'
-import { addItem, hydrateQueue, updateItem, type QueueItem } from '@/lib/uploadQueue'
+import { addItem, hydrateQueue, removeItem, updateItem, type QueueItem } from '@/lib/uploadQueue'
 import { startUploadProcessor } from '@/lib/uploadProcessor'
 import { useUploadQueue } from '@/lib/useUploadQueue'
 import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
-import { Icon } from '@/components/Icon'
+import { Icon, type IconName } from '@/components/Icon'
+import { Button } from '@/components/Button'
+import { Card } from '@/components/Card'
+import { Chip } from '@/components/Chip'
+import { Input } from '@/components/Field'
+import { Skeleton } from '@/components/Skeleton'
+import { useToast } from '@/components/Toast'
 
 // Foto del hero. Con null el hero es tipográfico (el "50" grande); al poner
 // la ruta (ej. '/ines.jpg') pasa a foto a sangre con degradado inferior, sin
@@ -48,42 +54,74 @@ function QueueThumb({ blob }: { blob: Blob }) {
     return () => URL.revokeObjectURL(objectUrl)
   }, [blob])
 
-  if (!url) return <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
+  if (!url) return <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
 
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+  return <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
 }
 
-function QueueRow({ item, onRetry }: { item: QueueItem; onRetry: (id: string) => void }) {
+const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: string }> = {
+  waiting: { name: 'clock', className: 'text-ink/70' },
+  uploading: { name: 'loader', className: 'animate-spin text-fuchsia' },
+  done: { name: 'check', className: 'text-fuchsia' },
+  failed: { name: 'alert', className: 'text-danger' },
+}
+
+function QueueRow({
+  item,
+  onRetry,
+  onDiscard,
+}: {
+  item: QueueItem
+  onRetry: (id: string) => void
+  onDiscard: (id: string) => void
+}) {
+  const icon = STATUS_ICON[item.status]
+  const progress =
+    item.status === 'done' ? 100 : item.status === 'uploading' ? (item.progressPercent ?? 0) : 0
+
   return (
-    <li className="flex animate-enter items-center gap-3 rounded-2xl border border-rose bg-surface p-3">
-      {item.thumbBlob ? (
-        <QueueThumb blob={item.thumbBlob} />
-      ) : (
-        <div className="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-rose/30" />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-base text-ink/70">{item.fileName}</p>
-        {/* key por estado: cada cambio de estado entra con un fade corto. */}
-        <p key={item.status} className="animate-enter text-base font-semibold text-ink">
-          {STATUS_LABEL[item.status]}
-          {item.status === 'uploading' &&
-            typeof item.progressPercent === 'number' &&
-            ` (${item.progressPercent}%)`}
-        </p>
-        {item.status === 'failed' && (
-          <p className="text-base text-danger">{item.errorMessage ?? 'No se pudo subir.'}</p>
+    <li className="animate-enter">
+      <Card className="flex items-center gap-3 p-3">
+        {item.thumbBlob ? (
+          <QueueThumb blob={item.thumbBlob} />
+        ) : (
+          <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
         )}
-      </div>
-      {item.status === 'failed' && (
-        <button
-          type="button"
-          onClick={() => onRetry(item.id)}
-          className="h-12 shrink-0 rounded-full bg-fuchsia px-4 text-base font-semibold text-white"
-        >
-          Reintentar
-        </button>
-      )}
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <p className="truncate text-sm text-ink/70">{item.fileName}</p>
+          {/* key por estado: cada cambio de estado entra con un fade corto. */}
+          <p key={item.status} className="flex animate-enter items-center gap-1.5 text-base font-semibold text-ink">
+            <Icon name={icon.name} className={`h-4 w-4 shrink-0 ${icon.className}`} />
+            {STATUS_LABEL[item.status]}
+            {item.status === 'uploading' &&
+              typeof item.progressPercent === 'number' &&
+              <span className="tabular-nums">{` (${item.progressPercent}%)`}</span>}
+          </p>
+          {item.status === 'failed' ? (
+            <p className="text-sm text-danger">{item.errorMessage ?? 'No se pudo subir.'}</p>
+          ) : (
+            <div className="h-1 overflow-hidden rounded-full bg-rose/60" aria-hidden>
+              <div
+                className={`h-full origin-left rounded-full transition-transform duration-400 ease-out ${
+                  item.status === 'done' ? 'bg-gold' : 'bg-fuchsia'
+                }`}
+                style={{ transform: `scaleX(${progress / 100})` }}
+              />
+            </div>
+          )}
+        </div>
+        {item.status === 'failed' && (
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <Button size="sm" icon="retry" onClick={() => onRetry(item.id)}>
+              Reintentar
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => onDiscard(item.id)} className="text-ink/70">
+              Descartar
+            </Button>
+          </div>
+        )}
+      </Card>
     </li>
   )
 }
@@ -99,27 +137,36 @@ function SubirScreen() {
   const [missionId, setMissionId] = useState<string | null>(presetMissionId)
   const [missions, setMissions] = useState<Mission[]>([])
   const [preparing, setPreparing] = useState(false)
-  const [stagingError, setStagingError] = useState<string | null>(null)
   const [confettiTrigger, setConfettiTrigger] = useState(0)
 
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
-  const celebratedIds = useRef<Set<string>>(new Set())
+  // Último estado visto de cada foto. La primera vez solo se registra: así las
+  // fotos que ya estaban listas al volver a /subir no festejan de nuevo.
+  const seenStatus = useRef<Map<string, QueueItem['status']> | null>(null)
 
   const queue = useUploadQueue()
+  const { toast, showToast } = useToast()
   const photoCount = usePhotoCount()
 
   useEffect(() => {
     let active = true
 
-    findExistingGuest().then((guest) => {
-      if (!active) return
-      if (!guest) {
-        router.replace('/')
-        return
-      }
-      setCheckingGuest(false)
-    })
+    findExistingGuest()
+      .then((guest) => {
+        if (!active) return
+        if (!guest) {
+          router.replace('/')
+          return
+        }
+        setCheckingGuest(false)
+      })
+      .catch(() => {
+        // Falló la consulta (wifi malo), no "no hay invitado": se muestra la
+        // pantalla igual para que la cola siga y se pueda sacar fotos. La
+        // inserción vuelve a chequear la sesión y el invitado del lado de RLS.
+        if (active) setCheckingGuest(false)
+      })
 
     void hydrateQueue().then(() => startUploadProcessor())
     void listActiveMissions().then((result) => {
@@ -143,13 +190,24 @@ function SubirScreen() {
   // Confetti: un estallido por cada foto que termina de subirse de verdad,
   // no una animación ambiente — ver components/Confetti.tsx.
   useEffect(() => {
+    const previous = seenStatus.current
+    seenStatus.current = new Map(queue.map((item) => [item.id, item.status]))
+    if (!previous) return
     const newlyDone = queue.filter(
-      (item) => item.status === 'done' && !celebratedIds.current.has(item.id),
+      // Solo transiciones vistas acá: lo que llega ya "done" (hidratado de
+      // IndexedDB) no tiene estado previo y no festeja.
+      (item) => item.status === 'done' && previous.has(item.id) && previous.get(item.id) !== 'done',
     )
     if (newlyDone.length === 0) return
-    for (const item of newlyDone) celebratedIds.current.add(item.id)
     setConfettiTrigger((n) => n + 1)
-  }, [queue])
+    showToast(
+      newlyDone.some((item) => item.missionId)
+        ? '¡Misión cumplida! Tu foto ya está en el álbum'
+        : newlyDone.length === 1
+          ? '¡Listo! Tu foto ya está en el álbum'
+          : `¡Listo! Ya están tus ${newlyDone.length} fotos en el álbum`,
+    )
+  }, [queue, showToast])
 
   function handleFilesSelected(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files
@@ -162,7 +220,6 @@ function SubirScreen() {
     }))
 
     setStaged((current) => [...current, ...next])
-    setStagingError(null)
     event.target.value = ''
   }
 
@@ -172,15 +229,15 @@ function SubirScreen() {
     }
     setStaged([])
     setCaption('')
-    setStagingError(null)
   }
 
   async function confirmUpload() {
     setPreparing(true)
-    setStagingError(null)
 
+    // La selección queda a la vista (con "Preparando…") hasta que todas las
+    // fotos están procesadas y en la cola; antes desaparecía al instante y no
+    // había ninguna señal mientras se procesaban.
     const toProcess = staged
-    setStaged([])
 
     let anyFailed = false
 
@@ -207,14 +264,15 @@ function SubirScreen() {
           })
         } catch {
           anyFailed = true
-        } finally {
-          URL.revokeObjectURL(staged_.previewUrl)
         }
       }),
     )
 
+    for (const item of toProcess) URL.revokeObjectURL(item.previewUrl)
+    setStaged([])
     if (anyFailed) {
-      setStagingError('Una de las fotos no se pudo procesar. Las demás ya están en la cola.')
+      // Va como toast: el bloque de la selección ya no está para mostrarlo.
+      showToast('Una de las fotos no se pudo procesar. Las demás ya están en la cola.', 'error')
     }
 
     setCaption('')
@@ -236,14 +294,15 @@ function SubirScreen() {
     <>
       <TopNav />
       <Confetti trigger={confettiTrigger} />
+      {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main className="flex min-h-screen flex-col gap-6 pb-12">
+      <main id="contenido" className="flex min-h-screen flex-col gap-6 pb-12">
         {/* Con foto: alto fijo (42svh), sin salto de layout al cargar y con
             "Sacar foto" visible sin scrollear a 360x640. Sin foto: campo bordó
             del alto de su contenido. */}
         <section
-          className={`relative flex flex-col justify-end overflow-hidden bg-ink px-6 pb-6 text-white ${
+          className={`relative flex flex-col justify-end overflow-hidden bg-ink pb-6 text-white ${
             HERO_PHOTO ? 'h-[42svh] min-h-[240px]' : 'pt-12'
           }`}
         >
@@ -260,39 +319,33 @@ function SubirScreen() {
               <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink/85 to-transparent" />
             </>
           )}
-          <div className="relative flex flex-col gap-2">
+          <div className="relative mx-auto flex w-full max-w-xl flex-col gap-2 px-6">
             <h1 className="animate-enter text-balance font-display text-4xl font-semibold leading-none">
               ¡Sumate a la fiesta!
             </h1>
             <p className="max-w-[34ch] animate-enter text-base leading-snug text-white/90 [animation-delay:60ms]">
               Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
             </p>
-            <p className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]">
+            {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
+            <p
+              key={photoCount ?? 'cargando'}
+              className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]"
+            >
               {nightCounterLabel(photoCount)}
             </p>
           </div>
         </section>
         <div className="scallop-edge" />
 
-        <div className="flex animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
+        <div className="mx-auto flex w-full max-w-xl animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
-              <button
-                type="button"
-                onClick={() => cameraInputRef.current?.click()}
-                className="flex h-16 items-center justify-center gap-3 rounded-full bg-fuchsia text-lg font-semibold text-white shadow-soft"
-              >
-                <Icon name="camera" />
+              <Button size="lg" icon="camera" onClick={() => cameraInputRef.current?.click()}>
                 Sacar foto
-              </button>
-              <button
-                type="button"
-                onClick={() => galleryInputRef.current?.click()}
-                className="flex h-14 items-center justify-center gap-3 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink"
-              >
-                <Icon name="images" className="h-5 w-5" />
+              </Button>
+              <Button variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
                 Elegir fotos
-              </button>
+              </Button>
 
               <input
                 ref={cameraInputRef}
@@ -322,18 +375,18 @@ function SubirScreen() {
                     key={item.id}
                     src={item.previewUrl}
                     alt=""
-                    className="aspect-square w-full rounded-xl object-cover"
+                    className="aspect-square w-full animate-enter rounded-xl object-cover"
                   />
                 ))}
               </div>
 
-              <input
+              <Input
                 type="text"
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="Epígrafe (opcional)"
                 aria-label="Epígrafe (opcional)"
-                className="h-14 rounded-2xl border border-ink/20 bg-surface px-4 text-base text-ink outline-none placeholder:text-ink/70 focus:border-fuchsia focus:ring-1 focus:ring-fuchsia"
+                autoComplete="off"
               />
 
               {missions.length > 0 && (
@@ -341,56 +394,42 @@ function SubirScreen() {
                   <p className="text-sm font-semibold text-ink/70">Misión (opcional)</p>
                   <div className="flex flex-wrap gap-2">
                     {missions.map((mission) => (
-                      <button
+                      <Chip
                         key={mission.id}
-                        type="button"
+                        selected={missionId === mission.id}
                         onClick={() =>
                           setMissionId((current) => (current === mission.id ? null : mission.id))
                         }
-                        aria-pressed={missionId === mission.id}
-                        className={`flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold ${
-                          missionId === mission.id
-                            ? 'bg-fuchsia text-white'
-                            : 'border border-ink/20 bg-surface text-ink'
-                        }`}
                       >
-                        {missionId === mission.id && <Icon name="check" className="h-4 w-4" />}
                         {mission.title}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
               )}
 
-              {stagingError && <p className="text-base text-danger">{stagingError}</p>}
-
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={cancelStaged}
-                  disabled={preparing}
-                  className="h-14 flex-1 rounded-full border border-ink/20 bg-surface text-base font-semibold text-ink disabled:opacity-40"
-                >
+                <Button variant="secondary" onClick={cancelStaged} disabled={preparing} className="flex-1 px-4">
                   Cancelar
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  icon="upload"
+                  loading={preparing}
                   onClick={() => void confirmUpload()}
-                  disabled={preparing}
-                  className="h-14 flex-[2] rounded-full bg-fuchsia text-base font-semibold text-white shadow-soft disabled:opacity-40"
+                  className="flex-[2] px-4"
                 >
                   {preparing
-                    ? 'Preparando...'
+                    ? 'Preparando…'
                     : `Subir ${staged.length > 1 ? staged.length + ' fotos' : 'foto'}`}
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
           {queue.length > 0 && (
-            <ul aria-live="polite" className="flex flex-col gap-2">
+            <ul aria-live="polite" className="flex flex-col gap-3">
               {queue.map((item) => (
-                <QueueRow key={item.id} item={item} onRetry={retryItem} />
+                <QueueRow key={item.id} item={item} onRetry={retryItem} onDiscard={(id) => void removeItem(id)} />
               ))}
             </ul>
           )}

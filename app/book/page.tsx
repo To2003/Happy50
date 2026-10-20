@@ -1,12 +1,15 @@
 import { BookTimeline } from '@/components/BookTimeline'
+import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
 
 export default function BookPage() {
   return (
-    <main className="min-h-screen animate-page">
-      <div className="px-4 pt-8">
-        <h1 className="text-balance font-display text-3xl text-ink">El book de la noche</h1>
+    <main id="contenido" className="mx-auto min-h-screen w-full max-w-5xl animate-page">
+      <div className="px-4 pb-6 pt-10">
+        <PageHeader title="El book de la noche" />
       </div>
       <BookTimeline />
+      <CreditFooter />
     </main>
   )
 }

@@ -1,15 +1,27 @@
 import { storage } from '@/lib/storage'
 import { insertPhoto } from '@/lib/photos'
 import { getSnapshot, subscribe, updateItem, type QueueItem } from '@/lib/uploadQueue'
+import { retryDelayMs } from '@/lib/uploadErrors'
+import { runWithRetries } from '@/lib/retry'
 
-// SPEC.md sección 8: 3 intentos, backoff exponencial.
+// SPEC.md sección 8: 3 intentos, backoff exponencial. Una foto por vez: es el
+// tope de subidas simultáneas (con wifi malo, dos a la vez se pisan).
 const MAX_ATTEMPTS = 3
-const RETRY_BASE_DELAY_MS = 1000
 
 let processing = false
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false
+}
+
+// Sin conexión no se intenta (ni se gasta un intento): se espera a que vuelva.
+function waitForOnline(): Promise<void> {
+  if (!isOffline()) return Promise.resolve()
+  return new Promise((resolve) => window.addEventListener('online', () => resolve(), { once: true }))
 }
 
 async function uploadOnce(item: QueueItem): Promise<void> {
@@ -43,21 +55,13 @@ async function uploadOnce(item: QueueItem): Promise<void> {
 }
 
 async function uploadWithRetries(item: QueueItem): Promise<void> {
-  for (let attempt = item.attempts; attempt < MAX_ATTEMPTS; attempt++) {
-    try {
-      await uploadOnce(item)
-      return
-    } catch (err) {
-      const nextAttempt = attempt + 1
-      await updateItem(item.id, { attempts: nextAttempt })
-
-      if (nextAttempt >= MAX_ATTEMPTS) {
-        throw err
-      }
-
-      await delay(RETRY_BASE_DELAY_MS * 2 ** attempt)
-    }
-  }
+  await runWithRetries(() => uploadOnce(item), item.attempts, MAX_ATTEMPTS, {
+    isOffline,
+    waitForOnline,
+    delay,
+    delayFor: retryDelayMs,
+    onFailedAttempt: (attempts) => updateItem(item.id, { attempts }),
+  })
 }
 
 async function processNext(): Promise<boolean> {
@@ -68,12 +72,17 @@ async function processNext(): Promise<boolean> {
 
   try {
     await uploadWithRetries({ ...next })
-    await updateItem(next.id, { status: 'done', progressPercent: 100 })
+    // La foto grande ya está en Storage: se suelta de IndexedDB para no llenar
+    // el celu. La miniatura queda para mostrar la fila en la cola.
+    await updateItem(next.id, { status: 'done', progressPercent: 100, displayBlob: undefined })
   } catch (err) {
+    // Al agotar los intentos ya no se reintenta solo: los mensajes que dicen
+    // "lo reintentamos solos" se cambian por el que pide tocar Reintentar.
+    const message = err instanceof Error ? err.message : ''
     await updateItem(next.id, {
       status: 'failed',
       errorMessage:
-        err instanceof Error ? err.message : 'No se pudo subir, tocá para reintentar.',
+        message && !/reintent/i.test(message) ? message : 'No se pudo subir, tocá para reintentar.',
     })
   }
 

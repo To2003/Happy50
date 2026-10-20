@@ -8,7 +8,15 @@ import {
   reassignPhotoMilestoneAction,
   startMilestoneAction,
 } from '../actions'
+import { unwrap } from '../unwrap'
 import { storage } from '@/lib/storage'
+import { AdminSkeleton, AdminTable } from '../AdminTable'
+import { Button } from '@/components/Button'
+import { Card } from '@/components/Card'
+import { Dialog } from '@/components/Dialog'
+import { EmptyState } from '@/components/EmptyState'
+import { Input, Select } from '@/components/Field'
+import { useToast } from '@/components/Toast'
 import type { Database } from '@/lib/database.types'
 
 type Milestone = Database['public']['Tables']['milestones']['Row']
@@ -16,6 +24,7 @@ type Milestone = Database['public']['Tables']['milestones']['Row']
 interface RecentPhoto {
   id: string
   storage_path: string
+  thumb_path: string
   taken_at: string
   milestone_id: string | null
   milestone_override_id: string | null
@@ -39,10 +48,14 @@ export function MomentosTab() {
   const [rangeFrom, setRangeFrom] = useState('')
   const [rangeTo, setRangeTo] = useState('')
   const [rangeMilestone, setRangeMilestone] = useState('')
-  const [rangeMessage, setRangeMessage] = useState<string | null>(null)
+  const [rangeError, setRangeError] = useState<string | null>(null)
+  const [confirmRange, setConfirmRange] = useState(false)
+  const [toStart, setToStart] = useState<Milestone | null>(null)
+  // Acción en curso: 'start', 'range' o el id de la foto que se reasigna.
+  const [pending, setPending] = useState<string | null>(null)
+  const { toast, showToast } = useToast()
 
   async function load() {
-    setLoading(true)
     setLoadError(null)
     try {
       const [milestonesData, photosData] = await Promise.all([
@@ -62,170 +75,247 @@ export function MomentosTab() {
     void load()
   }, [])
 
-  async function handleStart(milestoneId: string) {
+  async function handleStart() {
+    if (!toStart) return
+    setPending('start')
     try {
-      await startMilestoneAction(milestoneId)
+      unwrap(await startMilestoneAction(toStart.id))
       await load()
+      showToast(`Arrancó ${toStart.name}`)
+      setToStart(null)
     } catch {
-      setRangeMessage('No se pudo arrancar el momento, probá de nuevo.')
+      showToast('No se pudo arrancar el momento, probá de nuevo.', 'error')
+    } finally {
+      setPending(null)
     }
   }
 
   async function handleReassign(photoId: string, milestoneId: string) {
+    setPending(photoId)
     try {
-      await reassignPhotoMilestoneAction(photoId, milestoneId || null)
+      unwrap(await reassignPhotoMilestoneAction(photoId, milestoneId || null))
       await load()
+      showToast('Foto reasignada')
     } catch {
-      setRangeMessage('No se pudo reasignar la foto, probá de nuevo.')
+      showToast('No se pudo reasignar la foto, probá de nuevo.', 'error')
+    } finally {
+      setPending(null)
     }
+  }
+
+  function askRangeReassign() {
+    if (!rangeFrom || !rangeTo || !rangeMilestone) {
+      setRangeError('Completá desde, hasta y el momento.')
+      return
+    }
+    if (new Date(rangeFrom) >= new Date(rangeTo)) {
+      setRangeError('"Desde" tiene que ser antes que "Hasta".')
+      return
+    }
+    setRangeError(null)
+    setConfirmRange(true)
   }
 
   async function handleRangeReassign() {
-    if (!rangeFrom || !rangeTo || !rangeMilestone) return
-    setRangeMessage(null)
+    setPending('range')
     try {
-      const { count } = await reassignByTimeRangeAction(
-        new Date(rangeFrom).toISOString(),
-        new Date(rangeTo).toISOString(),
-        rangeMilestone,
+      const { count } = unwrap(
+        await reassignByTimeRangeAction(
+          new Date(rangeFrom).toISOString(),
+          new Date(rangeTo).toISOString(),
+          rangeMilestone,
+        ),
       )
-      setRangeMessage(`Reasignadas ${count} fotos.`)
+      showToast(`Reasignadas ${count} fotos.`)
+      setConfirmRange(false)
       await load()
     } catch {
-      setRangeMessage('No se pudo reasignar el rango, probá de nuevo.')
+      showToast('No se pudo reasignar el rango, probá de nuevo.', 'error')
+    } finally {
+      setPending(null)
     }
   }
 
-  if (loading) return <p className="text-ink/70">Cargando...</p>
+  if (loading) return <AdminSkeleton />
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-start gap-3">
-        <p className="text-danger">{loadError}</p>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="h-11 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
-        >
+      <EmptyState icon="alert">
+        <p className="text-base text-danger">{loadError}</p>
+        <Button icon="retry" onClick={() => void load()}>
           Reintentar
-        </button>
-      </div>
+        </Button>
+      </EmptyState>
     )
   }
 
+  const rangeMilestoneName = milestones.find((m) => m.id === rangeMilestone)?.name
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Momentos</h2>
-        <ul className="flex flex-col gap-2">
-          {milestones.map((milestone) => (
-            <li
-              key={milestone.id}
-              className="flex items-center justify-between gap-3 rounded-lg bg-surface p-3"
-            >
-              <div>
-                <p className="font-medium">
+        {milestones.length === 0 ? (
+          <EmptyState icon="clock">
+            <p className="text-base text-ink/70">Todavía no hay momentos cargados.</p>
+          </EmptyState>
+        ) : (
+          <AdminTable head={['Momento', 'Arrancó', '']}>
+            {milestones.map((milestone) => (
+              <tr key={milestone.id}>
+                <td className="px-3 py-2 text-base font-semibold text-ink max-sm:w-full">
                   {milestone.emoji} {milestone.name}
-                  {milestone.is_prologue && (
-                    <span className="ml-2 text-xs text-ink/70">(prólogo)</span>
+                  {milestone.is_prologue && <span className="ml-2 text-sm font-normal text-ink/70">(prólogo)</span>}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums text-ink/70">{formatTime(milestone.started_at)}</td>
+                <td className="px-3 py-2 text-right max-sm:ml-auto">
+                  {!milestone.is_prologue && (
+                    <Button size="sm" icon="play" onClick={() => setToStart(milestone)}>
+                      Arrancar ahora
+                    </Button>
                   )}
-                </p>
-                <p className="text-sm text-ink/70">{formatTime(milestone.started_at)}</p>
-              </div>
-              {!milestone.is_prologue && (
-                <button
-                  type="button"
-                  onClick={() => void handleStart(milestone.id)}
-                  className="h-11 shrink-0 rounded-lg bg-fuchsia text-white px-4 text-sm font-bold"
-                >
-                  Arrancar ahora
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+                </td>
+              </tr>
+            ))}
+          </AdminTable>
+        )}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Reasignar por rango horario</h2>
-        <div className="flex flex-col gap-3 rounded-lg bg-surface p-4">
+        <h2 className="font-display text-xl font-semibold">Reasignar por rango horario</h2>
+        <Card className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-3">
-            <label className="flex flex-col gap-1 text-sm text-ink/70">
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink/70">
               Desde
-              <input
+              <Input
                 type="datetime-local"
                 value={rangeFrom}
-                onChange={(event) => setRangeFrom(event.target.value)}
-                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
+                onChange={(event) => {
+                  setRangeFrom(event.target.value)
+                  setRangeError(null)
+                }}
+                invalid={!!rangeError}
+                className="h-11 px-3"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-ink/70">
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink/70">
               Hasta
-              <input
+              <Input
                 type="datetime-local"
                 value={rangeTo}
-                onChange={(event) => setRangeTo(event.target.value)}
-                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
+                onChange={(event) => {
+                  setRangeTo(event.target.value)
+                  setRangeError(null)
+                }}
+                invalid={!!rangeError}
+                className="h-11 px-3"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-ink/70">
+            <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink/70">
               Momento
-              <select
+              <Select
                 value={rangeMilestone}
-                onChange={(event) => setRangeMilestone(event.target.value)}
-                className="h-11 rounded-lg bg-rose/20 px-3 text-ink"
+                onChange={(event) => {
+                  setRangeMilestone(event.target.value)
+                  setRangeError(null)
+                }}
+                className="h-11 rounded-2xl"
               >
-                <option value="">Elegir...</option>
+                <option value="">Elegir…</option>
                 {milestones.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
-          <button
-            type="button"
-            onClick={() => void handleRangeReassign()}
-            disabled={!rangeFrom || !rangeTo || !rangeMilestone}
-            className="h-11 w-fit rounded-lg bg-fuchsia text-white px-4 text-sm font-bold disabled:opacity-40"
-          >
+          {rangeError && (
+            <p role="alert" className="text-sm text-danger">
+              {rangeError}
+            </p>
+          )}
+          <Button size="sm" onClick={askRangeReassign} className="w-fit">
             Reasignar rango
-          </button>
-          {rangeMessage && <p className="text-sm text-ink/80">{rangeMessage}</p>}
-        </div>
+          </Button>
+        </Card>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Últimas fotos — reasignar individual</h2>
-        <ul className="flex flex-col gap-2">
-          {photos.map((photo) => (
-            <li key={photo.id} className="flex items-center gap-3 rounded-lg bg-surface p-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={storage.getPublicUrl(photo.storage_path)}
-                alt=""
-                className="h-14 w-14 shrink-0 rounded object-cover"
-              />
-              <p className="min-w-0 flex-1 truncate text-sm text-ink/70">
-                {new Date(photo.taken_at).toLocaleString('es-AR')}
-              </p>
-              <select
-                defaultValue={photo.milestone_override_id ?? ''}
-                onChange={(event) => void handleReassign(photo.id, event.target.value)}
-                className="h-11 min-w-0 max-w-[50%] rounded-lg bg-rose/20 px-3 text-sm text-ink"
-              >
-                <option value="">(automático)</option>
-                {milestones.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </li>
-          ))}
-        </ul>
+        <h2 className="font-display text-xl font-semibold">Últimas fotos — reasignar individual</h2>
+        {photos.length === 0 ? (
+          <EmptyState icon="images">
+            <p className="text-base text-ink/70">Todavía no hay fotos.</p>
+          </EmptyState>
+        ) : (
+          <AdminTable head={['Foto', 'Sacada', 'Momento']}>
+            {photos.map((photo) => (
+              <tr key={photo.id}>
+                <td className="px-3 py-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={storage.getPublicUrl(photo.thumb_path)}
+                    alt=""
+                    loading="lazy"
+                    className="h-14 w-14 min-w-14 max-w-none rounded-xl object-cover"
+                  />
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums text-ink/70">
+                  {new Date(photo.taken_at).toLocaleString('es-AR')}
+                </td>
+                <td className="px-3 py-2">
+                  <Select
+                    defaultValue={photo.milestone_override_id ?? ''}
+                    disabled={pending === photo.id}
+                    aria-label="Momento de la foto"
+                    onChange={(event) => void handleReassign(photo.id, event.target.value)}
+                    className="h-11 w-full min-w-[9rem] rounded-2xl text-sm"
+                  >
+                    <option value="">(automático)</option>
+                    {milestones.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </Select>
+                </td>
+              </tr>
+            ))}
+          </AdminTable>
+        )}
       </section>
+
+      {toStart && (
+        <Dialog
+          title={`¿Arrancar ${toStart.name} ahora? Las fotos nuevas van a caer en este momento.`}
+          onClose={() => pending !== 'start' && setToStart(null)}
+        >
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={() => setToStart(null)} disabled={pending === 'start'} className="flex-1 px-4">
+              No
+            </Button>
+            <Button icon="play" loading={pending === 'start'} onClick={() => void handleStart()} className="flex-1 px-4">
+              Arrancar ahora
+            </Button>
+          </div>
+        </Dialog>
+      )}
+
+      {confirmRange && (
+        <Dialog
+          title={`¿Pasar a ${rangeMilestoneName ?? 'ese momento'} todas las fotos de ese rango?`}
+          onClose={() => pending !== 'range' && setConfirmRange(false)}
+        >
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={() => setConfirmRange(false)} disabled={pending === 'range'} className="flex-1 px-4">
+              No
+            </Button>
+            <Button loading={pending === 'range'} onClick={() => void handleRangeReassign()} className="flex-1 px-4">
+              Reasignar rango
+            </Button>
+          </div>
+        </Dialog>
+      )}
+      {toast}
     </div>
   )
 }

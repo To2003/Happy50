@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { EmptyState } from '@/components/EmptyState'
 import { BookTimeline } from '@/components/BookTimeline'
+import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
 
 export default function BookMesaPage() {
   const params = useParams<{ code: string }>()
@@ -26,8 +28,8 @@ export default function BookMesaPage() {
 
   if (table === null) {
     return (
-      <main className="flex min-h-screen flex-col justify-center px-6">
-        <EmptyState>
+      <main id="contenido" className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-4">
+        <EmptyState icon="book">
           <p className="text-base text-ink/70">No encontramos esa mesa.</p>
         </EmptyState>
       </main>
@@ -35,11 +37,12 @@ export default function BookMesaPage() {
   }
 
   return (
-    <main className="min-h-screen">
-      <div className="px-4 pt-8">
-        <h1 className="text-balance font-display text-3xl text-ink">El book de {table.label}</h1>
+    <main id="contenido" className="mx-auto min-h-screen w-full max-w-5xl">
+      <div className="px-4 pb-6 pt-10">
+        <PageHeader title={`El book de ${table.label}`} />
       </div>
       <BookTimeline tableFilter={table} />
+      <CreditFooter />
     </main>
   )
 }

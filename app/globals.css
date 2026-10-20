@@ -21,6 +21,25 @@
   outline-offset: 2px;
 }
 
+/* Brillo del Skeleton: una franja clara que cruza, solo con transform. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 250 246 / 0.55), transparent);
+  animation: shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* Press táctil: todo botón se hunde un poco al tocarlo. Los links con
    forma de botón suman la clase .press. */
 button:not(:disabled),
@@ -40,6 +59,31 @@ button:not(:disabled):active,
   }
 }
 
+/* Reveal del book: el estado oculto solo existe si el JS lo puso. Visible =
+   transform none (no queda transform aplicado al terminar). */
+.reveal {
+  transition:
+    opacity 400ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* View Transitions (grilla -> visor): la foto viaja con la curva de la casa. */
+.vt-foto {
+  view-transition-name: foto;
+}
+::view-transition-group(foto) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+}
+
 /* Corte global: si el sistema pide menos movimiento, nada se anima
    (incluye el confetti y cualquier transición de las fases siguientes). */
 @media (prefers-reduced-motion: reduce) {
@@ -51,6 +95,11 @@ button:not(:disabled):active,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 
@@ -82,7 +131,7 @@ button:not(:disabled):active,
     opacity: 1;
   }
   100% {
-    transform: translateY(110vh) rotate(540deg);
+    transform: translateY(70vh) rotate(420deg);
     opacity: 0;
   }
 }

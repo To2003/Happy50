@@ -1,5 +1,3 @@
-'use client'
-
 import { useRef, type AnimationEvent, type CSSProperties } from 'react'
 
 const MAX_STAGGERED = 12

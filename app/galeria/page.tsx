@@ -10,7 +10,18 @@ import { addHeart, hasHearted, removeHeart } from '@/lib/hearts'
 import type { Database } from '@/lib/database.types'
 import { TopNav } from '@/components/TopNav'
 import { EmptyState } from '@/components/EmptyState'
+import { Icon } from '@/components/Icon'
+import { Button } from '@/components/Button'
+import { Chip } from '@/components/Chip'
+import { Select } from '@/components/Field'
+import { Dialog, useDialogBehavior } from '@/components/Dialog'
+import { PageHeader } from '@/components/PageHeader'
+import { CreditFooter } from '@/components/CreditFooter'
+import { Skeleton } from '@/components/Skeleton'
+import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
+import { morphClose, morphOpen } from '@/lib/viewTransition'
+import { useSharePhoto } from '@/lib/useSharePhoto'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -37,17 +48,17 @@ function GridThumb({
   stagger,
 }: {
   photo: Photo
-  onOpen: () => void
+  onOpen: (el: HTMLElement) => void
   stagger: StaggerProps
 }) {
   const url = storage.getPublicUrl(photo.thumb_path)
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={(event) => onOpen(event.currentTarget)}
       style={stagger.style}
       onAnimationEnd={stagger.onAnimationEnd}
-      className={`relative aspect-square overflow-hidden rounded-2xl ${stagger.className ?? ''}`}
+      className={`relative aspect-square overflow-hidden rounded-xl ${stagger.className ?? ''}`}
     >
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
       <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
@@ -68,12 +79,15 @@ function Viewer({
   guest,
   onClose,
   onDeleted,
+  onError,
 }: {
   photo: Photo
   guest: Guest | null
   onClose: () => void
   onDeleted: (id: string) => void
+  onError: (message: string) => void
 }) {
+  useDialogBehavior(onClose)
   const [hearted, setHearted] = useState(false)
   const [heartCount, setHeartCount] = useState(photo.hearts)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -107,7 +121,8 @@ function Viewer({
         setPopKey((key) => key + 1)
       }
     } catch {
-      // El corazón no cambió: el estado optimista no se tocó, no hace falta revertir nada visible.
+      // El estado no se tocó antes del await: no hay nada que revertir, solo avisar.
+      onError('No se pudo guardar el corazón. Probá de nuevo.')
     } finally {
       setBusy(false)
     }
@@ -122,11 +137,13 @@ function Viewer({
     } catch {
       setBusy(false)
       setConfirmingDelete(false)
+      onError('No se pudo borrar la foto. Probá de nuevo.')
     }
   }
 
   const isOwn = guest !== null && guest.id === photo.guest_id
   const url = storage.getPublicUrl(photo.storage_path)
+  const share = useSharePhoto(url, `foto-${photo.id}.jpg`)
 
   return (
     <div
@@ -139,24 +156,37 @@ function Viewer({
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="flex h-14 w-14 items-center justify-center rounded-full text-2xl active:bg-white/10"
+          className="flex h-14 w-14 items-center justify-center rounded-full active:bg-white/10"
         >
-          ✕
+          <Icon name="x" className="h-7 w-7" />
         </button>
+        <div className="flex items-center gap-1">
+          {share && (
+            <button
+              type="button"
+              onClick={() => void share()}
+              className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold active:bg-white/10"
+            >
+              <Icon name="share" className="h-5 w-5" />
+              Compartir
+            </button>
+          )}
         {isOwn && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="h-12 rounded-full px-4 text-base font-bold text-card-rose active:bg-white/10"
+            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
           >
+            <Icon name="trash" className="h-5 w-5" />
             Borrar
           </button>
         )}
+        </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={photo.caption ?? ''} className="max-h-full max-w-full object-contain" />
+        <img src={url} alt={photo.caption ?? ''} className="vt-foto max-h-full max-w-full object-contain" />
       </div>
 
       <div className="flex items-center gap-4 p-4">
@@ -165,40 +195,42 @@ function Viewer({
           onClick={() => void toggleHeart()}
           aria-pressed={hearted}
           disabled={!guest || busy}
-          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-bold disabled:opacity-40"
+          aria-label={`Corazones: ${heartCount}`}
+          className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-semibold disabled:opacity-40"
         >
-          <span key={popKey} className={popKey > 0 ? 'inline-block animate-pop' : 'inline-block'}>
-            {hearted ? '❤️' : '🤍'}
-          </span>{' '}
+          <span key={popKey} className={popKey > 0 ? 'inline-flex animate-pop' : 'inline-flex'}>
+            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-rose' : ''}`} />
+          </span>
           <span className="tabular-nums">{heartCount}</span>
         </button>
         {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
       </div>
 
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-surface p-6 text-ink shadow-lift animate-enter">
-            <p className="text-lg">¿Borrar esta foto? No la vas a poder recuperar vos mismo después.</p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                disabled={busy}
-                className="h-14 flex-1 rounded-full border-2 border-rose bg-surface text-base font-bold text-ink disabled:opacity-40"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={() => void confirmDelete()}
-                disabled={busy}
-                className="h-14 flex-1 rounded-full bg-danger text-base font-bold text-white disabled:opacity-40"
-              >
-                {busy ? 'Borrando...' : 'Sí, borrar'}
-              </button>
-            </div>
+        <Dialog
+          title="¿Borrar esta foto? No la vas a poder recuperar vos mismo después."
+          onClose={() => !busy && setConfirmingDelete(false)}
+        >
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmingDelete(false)}
+              disabled={busy}
+              className="flex-1 px-4"
+            >
+              No
+            </Button>
+            <Button
+              variant="danger"
+              icon="trash"
+              loading={busy}
+              onClick={() => void confirmDelete()}
+              className="flex-1 px-4"
+            >
+              {busy ? 'Borrando…' : 'Sí, borrar'}
+            </Button>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   )
@@ -213,7 +245,11 @@ export default function GaleriaPage() {
   // Arranca en true: la primera tanda es la única que entra escalonada.
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
+  // Miniatura de la que salió el visor: ahí vuelve la transición al cerrar.
+  const openedFrom = useRef<HTMLElement | null>(null)
+  const { toast, showToast } = useToast()
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const staggerFor = useInitialStagger(
@@ -223,8 +259,9 @@ export default function GaleriaPage() {
   const loadingRef = useRef(false)
 
   useEffect(() => {
-    void findExistingGuest().then(setGuest)
-    void listActiveMissions().then(setMissions)
+    // Sin invitado (o sin red) la galería se ve igual; solo no deja dar corazón.
+    findExistingGuest().then(setGuest).catch(() => setGuest(null))
+    listActiveMissions().then(setMissions).catch(() => setMissions([]))
 
     const supabase = getSupabaseClient()
     supabase
@@ -270,6 +307,10 @@ export default function GaleriaPage() {
       if (!error && data) {
         setPhotos((current) => (offset === 0 ? data : [...current, ...data]))
         setHasMore(data.length === PAGE_SIZE)
+        setLoadError(false)
+      } else {
+        // Antes se tragaba el error y se veía "Todavía no hay fotos", que no era cierto.
+        setLoadError(true)
       }
 
       loadingRef.current = false
@@ -301,32 +342,30 @@ export default function GaleriaPage() {
 
   function handleDeleted(id: string) {
     setPhotos((current) => current.filter((photo) => photo.id !== id))
+    showToast('Listo, la foto se borró')
   }
 
   return (
     <>
     <TopNav />
-    <main className="flex min-h-screen animate-page flex-col gap-4 px-4 py-8">
-      <h1 className="text-balance font-display text-3xl text-ink">Galería</h1>
+    <main id="contenido" className="mx-auto flex min-h-screen w-full max-w-5xl animate-page flex-col gap-6 px-4 pb-12 pt-10">
+      <PageHeader title="Galería" />
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
+        <Chip
+          selected={filters.onlyMine}
           onClick={() => setFilters((f) => ({ ...f, onlyMine: !f.onlyMine }))}
-          className={`h-12 rounded-full px-4 text-base font-bold ${
-            filters.onlyMine ? 'bg-fuchsia text-white' : 'border-2 border-rose bg-surface text-ink'
-          }`}
         >
           Mis fotos
-        </button>
+        </Chip>
 
-        <select
+        <Select
           aria-label="Filtrar por misión"
           value={filters.missionId ?? ''}
           onChange={(event) =>
             setFilters((f) => ({ ...f, missionId: event.target.value || null }))
           }
-          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
+          className="flex-1 basis-40"
         >
           <option value="">Todas las misiones</option>
           {missions.map((mission) => (
@@ -334,13 +373,13 @@ export default function GaleriaPage() {
               {mission.title}
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           aria-label="Filtrar por mesa"
           value={filters.tableId ?? ''}
           onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="h-12 min-w-0 max-w-full rounded-full border-2 border-rose bg-surface px-4 text-base text-ink"
+          className="flex-1 basis-40"
         >
           <option value="">Todas las mesas</option>
           {tables.map((table) => (
@@ -348,22 +387,39 @@ export default function GaleriaPage() {
               {table.label ?? `Mesa ${table.code}`}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5">
         {photos.map((photo) => (
           <GridThumb
             key={photo.id}
             photo={photo}
-            onOpen={() => setViewerPhoto(photo)}
+            onOpen={(el) => {
+              openedFrom.current = el
+              void morphOpen(el, storage.getPublicUrl(photo.storage_path), () => setViewerPhoto(photo))
+            }}
             stagger={staggerFor(photo.id)}
           />
         ))}
+        {/* Mientras carga una tanda: celdas de skeleton (9 la primera vez, 3 al paginar). */}
+        {loading &&
+          Array.from({ length: photos.length === 0 ? 9 : 3 }, (_, i) => (
+            <Skeleton key={`sk-${i}`} className="aspect-square rounded-xl" />
+          ))}
       </div>
 
-      {photos.length === 0 && !loading && (
-        <EmptyState>
+      {loadError && !loading && (
+        <EmptyState icon="alert">
+          <p className="text-base text-danger">No se pudieron cargar las fotos. Puede ser la conexión — probá de nuevo.</p>
+          <Button icon="retry" onClick={() => void loadPage(photos.length)}>
+            Reintentar
+          </Button>
+        </EmptyState>
+      )}
+
+      {photos.length === 0 && !loading && !loadError && (
+        <EmptyState icon="images">
           <p className="text-base text-ink/70">Todavía no hay fotos con estos filtros.</p>
         </EmptyState>
       )}
@@ -374,11 +430,14 @@ export default function GaleriaPage() {
         <Viewer
           photo={viewerPhoto}
           guest={guest}
-          onClose={() => setViewerPhoto(null)}
+          onClose={() => morphClose(openedFrom.current, () => setViewerPhoto(null))}
           onDeleted={handleDeleted}
+          onError={(message) => showToast(message, 'error')}
         />
       )}
+      {toast}
     </main>
+    {!hasMore && photos.length > 0 && <CreditFooter />}
     </>
   )
 }
