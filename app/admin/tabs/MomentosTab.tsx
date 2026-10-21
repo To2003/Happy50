@@ -181,7 +181,7 @@ export function MomentosTab() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-xl font-semibold">Reasignar por rango horario</h2>
+        <h2 className="font-display text-xl text-accent">Reasignar por rango horario</h2>
         <Card className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-3">
             <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink/70">
@@ -241,7 +241,7 @@ export function MomentosTab() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-xl font-semibold">Últimas fotos — reasignar individual</h2>
+        <h2 className="font-display text-xl text-accent">Últimas fotos — reasignar individual</h2>
         {photos.length === 0 ? (
           <EmptyState icon="images">
             <p className="text-base text-ink/70">Todavía no hay fotos.</p>

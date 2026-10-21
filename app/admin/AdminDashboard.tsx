@@ -40,7 +40,7 @@ export function AdminDashboard() {
     <div className="min-h-screen lg:grid lg:grid-cols-[15rem_1fr]">
       <aside className="sticky top-0 z-20 border-b border-rose bg-bg lg:h-screen lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4 lg:px-5 lg:pt-8">
-          <p className="font-display text-2xl font-semibold text-ink">Admin</p>
+          <p className="font-display text-2xl text-accent">Admin</p>
           <div className="flex items-center gap-1 lg:hidden">
             <a href="/admin/export" aria-label="Exportar manifiesto" className={buttonClasses('ghost', 'sm', 'w-11 px-0')}>
               <Icon name="download" className="h-5 w-5" />
@@ -88,7 +88,7 @@ export function AdminDashboard() {
       </aside>
 
       <main id="contenido" className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pb-16 pt-6 lg:px-10 lg:pt-10">
-        <h1 className="font-display text-3xl font-semibold text-ink">{current?.label}</h1>
+        <h1 className="font-display text-3xl text-accent">{current?.label}</h1>
         {tab === 'momentos' && <MomentosTab />}
         {tab === 'moderacion' && <ModeracionTab />}
         {tab === 'misiones' && <MisionesTab />}
