@@ -1,8 +1,59 @@
 # Noche: registro de trabajo autónomo
 
-Rama `claude/funny-ride-gbt756`. Los PR #2 y #3 ya están mergeados en main;
-el arreglo del borrado sale de una rama reiniciada desde main (sin PR todavía).
+Rama `claude/funny-ride-gbt756`. Los PR #2, #3 y #4 ya están mergeados en
+main; el cambio de diseño (estilo de la invitación) sale de una rama
+reiniciada desde main.
 Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
+
+## Cambio de diseño: estilo de la invitación (en curso)
+
+Rama `claude/funny-ride-gbt756` reiniciada desde `origin/main` (el PR #4 ya
+estaba mergeado). Paso 1 hecho: tokens, `/subir` y home; falta el resto.
+
+- Paleta medida de la invitación: fondo `#FFF0F7`, superficies `#FFF8FB`,
+  rojo de la invitación `#E64741` (superficies grandes, texto blanco >= 24 px),
+  rojo accesible `#C8302B` (botones, texto rojo, links, activo), rosa
+  `#FEA3E0` (solo decorativo), texto `#4A1626` y `#7A4D5A`. Sin dorado.
+- Manuscrita: Nothing You Could Do. Comparada lado a lado con el "Ine" de la
+  invitación contra Mansalva, Reenie Beanie y Caveat Brush: es la única con
+  trazo fino, mayúscula alta inclinada y la "ne" ligada; las otras son
+  gruesas o de trazo parejo.
+- Tarjeta (`components/InviteCard.tsx`): HELLO, 50, Ine y la copa en SVG,
+  aria-hidden, medidas en `cqw` calculadas con las métricas de Anton. Variante
+  `banner` (3:2, alto <= 38svh) en `/subir`; `poster` (4:5) en la home. Sin
+  fecha, lugar, hora ni "¡Te espero!".
+- `/subir`: se retira `HERO_PHOTO`; el hero ahora es la tarjeta.
+- Home: el H1 "50 años" queda solo para lectores de pantalla (`sr-only`): la
+  tarjeta lo muestra y es decorativa; el contexto visible es la bajada y el
+  botón "Sumate".
+
+### Contraste de todos los pares texto/fondo
+
+| Texto | Fondo | Uso | Contraste | AA texto normal (4,5) | AA texto grande (3) |
+|---|---|---|---|---|---|
+| `#4A1626` | `#FFF0F7` | Texto principal | 13.29 | sí | sí |
+| `#4A1626` | `#FFF8FB` | Texto en tarjetas/inputs | 14.00 | sí | sí |
+| `#7A4D5A` | `#FFF0F7` | Texto secundario | 6.28 | sí | sí |
+| `#7A4D5A` | `#FFF8FB` | Texto secundario en tarjetas | 6.61 | sí | sí |
+| `#4A1626 al 70%` | `#FFF0F7` | Secundario text-ink/70 | 5.47 | sí | sí |
+| `#4A1626 al 70%` | `#FFF8FB` | text-ink/70 en tarjetas | 5.62 | sí | sí |
+| `#C8302B` | `#FFF0F7` | Títulos, links, activo, botón secundario | 4.87 | sí | sí |
+| `#C8302B` | `#FFF8FB` | Texto rojo en tarjetas | 5.13 | sí | sí |
+| `#FFFFFF` | `#C8302B` | Botón principal, píldora, chip activo | 5.37 | sí | sí |
+| `#FFFFFF` | `#E64741` | Texto blanco sobre rojo invitación (solo >=24px) | 3.93 | no | sí |
+| `#9B2C2C` | `#FFF0F7` | Errores | 6.83 | sí | sí |
+| `#9B2C2C` | `#FFF8FB` | Errores en tarjetas | 7.19 | sí | sí |
+| `#4A1626` | `#FFE0EF` | Misión card-rose | 11.97 | sí | sí |
+| `#4A1626` | `#FFE1DE` | Misión card-gold | 11.91 | sí | sí |
+| `#4A1626` | `#FCD9EE` | Misión card-mauve | 11.37 | sí | sí |
+| `#4A1626` | `#FFEAE4` | Misión card-peach | 12.65 | sí | sí |
+| `#FFFFFF` | `#4A1626` | Toast y visor (texto blanco sobre bordó) | 14.65 | sí | sí |
+| `#E64741` | `#FFF0F7` | NO usar en texto chico (control) | 3.57 | no | sí |
+| `#FEA3E0` | `#FFF0F7` | NO usar en texto (control) | 1.65 | no | no |
+| `#FEA3E0` | `#E64741` | Decorativo: HELLO/50 sobre rojo | 2.16 | no | no |
+
+`#E64741` y `#FEA3E0` nunca van en texto chico: los dos últimos controles lo
+confirman (3,57 y 1,65 sobre el fondo).
 
 ## Bug en producción: "Borrar" en /galeria (iPhone Safari)
 
