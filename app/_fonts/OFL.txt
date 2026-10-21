@@ -1,9 +1,8 @@
-Subsets de Fraunces (wght 600, SOFT 50) y DM Sans (wght 500), solo para la
-imagen Open Graph y los íconos. Generados desde los woff2 que baja next/font.
+Subset de Anton (wght 400, solo dígitos), solo para generar el favicon, el
+apple-icon y los íconos del manifest. Generado desde el woff2 que baja next/font.
 
-Fraunces: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
-DM Sans: Copyright 2014 The DM Sans Project Authors (github.com/googlefonts/dm-fonts)
-Ambas bajo la SIL Open Font License 1.1 (texto completo abajo).
+Anton: Copyright 2020 The Anton Project Authors (https://github.com/googlefonts/AntonFont.git)
+Bajo la SIL Open Font License 1.1 (texto completo abajo).
 
 SIL OPEN FONT LICENSE
 
