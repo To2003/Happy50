@@ -5,10 +5,33 @@ main; el cambio de diseño (estilo de la invitación) sale de una rama
 reiniciada desde main.
 Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
 
-## Cambio de diseño: estilo de la invitación (en curso)
+## Cambio de diseño: estilo de la invitación
 
 Rama `claude/funny-ride-gbt756` reiniciada desde `origin/main` (el PR #4 ya
-estaba mergeado). Paso 1 hecho: tokens, `/subir` y home; falta el resto.
+estaba mergeado). Paso 1 (tokens, `/subir`, home) aprobado; paso 2 hecho.
+
+Paso 2:
+- "Ine" con contorno de 1 px del mismo color (`-webkit-text-stroke`): más
+  cerca del pincel, sin que se peguen las letras (comparado de nuevo).
+- Privacidad: sin "Compartir" ni Web Share; sin imagen Open Graph,
+  descripción, `og:*` ni `twitter:*`; título "Álbum" (por pantalla, "Galería ·
+  Álbum"). Siguen `noindex, nofollow` y `robots.txt` bloqueando todo.
+  Verificado en el HTML servido. Ojo: algunas apps igual pueden mostrar el
+  favicon o el título "Álbum" junto al link; foto o tarjeta, no.
+- Títulos de pantalla en Anton, mayúsculas, rojo `#C8302B`: galería,
+  misiones, book (y capítulos), entrar, 404 y error. A 360 px ninguno se corta
+  (el más largo, "EL BOOK DE LA NOCHE", entra en una línea; los demás pueden
+  pasar a dos con `text-balance`). Anton tiene un solo peso: se sacó
+  `font-semibold` de todo lo que usa `font-display` (si no, el navegador
+  inventa una negrita deforme).
+- Chips y vacíos con borde rosa, íconos rojos; misiones con tintes rosas,
+  ícono rojo y progreso rojo sobre rosa; nav con activo e indicador rojos;
+  visor con corazón rosa y "Borrar" en blanco; aviso sin conexión en rojo;
+  inputs y selects con borde rojo; diálogos con título en DM Sans (las
+  preguntas largas en Anton cansan).
+- Admin: solo colores y tipografías (títulos en Anton rojo).
+- Íconos: "50" en Anton rosa sobre rojo (subset de Anton de 4 KB; se sacaron
+  los de Fraunces y DM Sans). Manifest y `theme-color` en `#FFF0F7`.
 
 - Paleta medida de la invitación: fondo `#FFF0F7`, superficies `#FFF8FB`,
   rojo de la invitación `#E64741` (superficies grandes, texto blanco >= 24 px),
@@ -27,33 +50,47 @@ estaba mergeado). Paso 1 hecho: tokens, `/subir` y home; falta el resto.
   tarjeta lo muestra y es decorativa; el contexto visible es la bajada y el
   botón "Sumate".
 
-### Contraste de todos los pares texto/fondo
+### Contraste de todos los pares texto/fondo y de componentes
 
-| Texto | Fondo | Uso | Contraste | AA texto normal (4,5) | AA texto grande (3) |
+**Texto** (AA: 4,5 normal, 3 grande)
+
+| Texto | Fondo | Uso | Contraste | Normal | Grande |
 |---|---|---|---|---|---|
 | `#4A1626` | `#FFF0F7` | Texto principal | 13.29 | sí | sí |
-| `#4A1626` | `#FFF8FB` | Texto en tarjetas/inputs | 14.00 | sí | sí |
-| `#7A4D5A` | `#FFF0F7` | Texto secundario | 6.28 | sí | sí |
+| `#4A1626` | `#FFF8FB` | Texto en tarjetas, inputs y chips | 14.00 | sí | sí |
+| `#7A4D5A` | `#FFF0F7` | Texto secundario (bajada de /subir) | 6.28 | sí | sí |
 | `#7A4D5A` | `#FFF8FB` | Texto secundario en tarjetas | 6.61 | sí | sí |
 | `#4A1626 al 70%` | `#FFF0F7` | Secundario text-ink/70 | 5.47 | sí | sí |
-| `#4A1626 al 70%` | `#FFF8FB` | text-ink/70 en tarjetas | 5.62 | sí | sí |
-| `#C8302B` | `#FFF0F7` | Títulos, links, activo, botón secundario | 4.87 | sí | sí |
-| `#C8302B` | `#FFF8FB` | Texto rojo en tarjetas | 5.13 | sí | sí |
-| `#FFFFFF` | `#C8302B` | Botón principal, píldora, chip activo | 5.37 | sí | sí |
-| `#FFFFFF` | `#E64741` | Texto blanco sobre rojo invitación (solo >=24px) | 3.93 | no | sí |
+| `#4A1626 al 70%` | `#FFF8FB` | text-ink/70 en tarjetas y vacíos | 5.62 | sí | sí |
+| `#C8302B` | `#FFF0F7` | Títulos Anton, links, nav activo, botón secundario | 4.87 | sí | sí |
+| `#C8302B` | `#FFF8FB` | Texto rojo en tarjetas y selects | 5.13 | sí | sí |
+| `#FFFFFF` | `#C8302B` | Botón principal, píldora, chip activo, aviso sin conexión | 5.37 | sí | sí |
+| `#FFFFFF` | `#9B2C2C` | Botón "Sí, borrar" | 7.53 | sí | sí |
+| `#FFFFFF` | `#E64741` | Blanco sobre rojo invitación (solo >= 24 px) | 3.93 | no | sí |
 | `#9B2C2C` | `#FFF0F7` | Errores | 6.83 | sí | sí |
 | `#9B2C2C` | `#FFF8FB` | Errores en tarjetas | 7.19 | sí | sí |
 | `#4A1626` | `#FFE0EF` | Misión card-rose | 11.97 | sí | sí |
 | `#4A1626` | `#FFE1DE` | Misión card-gold | 11.91 | sí | sí |
 | `#4A1626` | `#FCD9EE` | Misión card-mauve | 11.37 | sí | sí |
 | `#4A1626` | `#FFEAE4` | Misión card-peach | 12.65 | sí | sí |
-| `#FFFFFF` | `#4A1626` | Toast y visor (texto blanco sobre bordó) | 14.65 | sí | sí |
+| `#FFFFFF` | `#4A1626` | Visor, "Borrar", toast | 14.65 | sí | sí |
 | `#E64741` | `#FFF0F7` | NO usar en texto chico (control) | 3.57 | no | sí |
 | `#FEA3E0` | `#FFF0F7` | NO usar en texto (control) | 1.65 | no | no |
-| `#FEA3E0` | `#E64741` | Decorativo: HELLO/50 sobre rojo | 2.16 | no | no |
 
-`#E64741` y `#FEA3E0` nunca van en texto chico: los dos últimos controles lo
-confirman (3,57 y 1,65 sobre el fondo).
+**Componentes e íconos** (AA 1.4.11: 3 para bordes de controles e íconos con significado)
+
+| Elemento | Fondo | Uso | Contraste | 3:1 |
+|---|---|---|---|---|
+| `#C8302B` | `#FFF0F7` | Borde de inputs, selects y botón secundario | 4.87 | sí |
+| `#C8302B` | `#FFE0EF` | Ícono de misión pendiente (card-rose) | 4.38 | sí |
+| `#C8302B` | `#FCD9EE` | Ícono de misión pendiente (card-mauve) | 4.16 | sí |
+| `#C8302B` | `#FEA3E0` al 70% | Barra de progreso: relleno sobre la pista | 3.43 | sí |
+| `#FEA3E0` | `#4A1626` | Corazón e ícono del toast sobre bordó | 8.04 | sí |
+| `#FEA3E0` | `#E64741` | HELLO / 50 (decorativo, aria-hidden) | 2.16 | no (decorativo) |
+
+`#E64741` y `#FEA3E0` nunca van en texto chico: los controles lo confirman
+(3,57 y 1,65 sobre el fondo). Los únicos "no" son decorativos (aria-hidden) o
+texto blanco grande sobre el rojo de la invitación, que pasa como texto grande.
 
 ## Privacidad: cómo se controla hoy el acceso (solo informe, sin cambios)
 
