@@ -130,7 +130,7 @@ export default function MisionesPage() {
           }
         >
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-blush">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-blush/70">
             <div
               className="h-full origin-left rounded-full bg-accent transition-transform duration-400 ease-out"
               style={{ transform: `scaleX(${progressPercent / 100})` }}
