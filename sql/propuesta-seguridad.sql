@@ -3,7 +3,7 @@
 -- NO correr el archivo entero: copiar y correr bloque por bloque en el SQL
 -- Editor de Supabase (si se puede, primero en un proyecto de prueba). Cada
 -- bloque trae su "Deshacer". Orden si se aplican varios: B antes que C.
--- A está comentado a propósito: es opcional y la app ya no lo necesita.
+-- A y E están comentados a propósito: A es opcional y E necesita cambios de app antes.
 -- ============================================================================
 
 
@@ -141,3 +141,69 @@ create policy photos_bucket_insert_authenticated on storage.objects
 -- create policy photos_bucket_insert_authenticated on storage.objects
 --   for insert to authenticated
 --   with check (bucket_id = 'photos');
+
+
+-- ----------------------------------------------------------------------------
+-- E) Cerrar el acceso directo con la clave pública (DISEÑO, no aplicar así nomás)
+-- ----------------------------------------------------------------------------
+-- El QR de la entrada (EVENT_ACCESS_KEY) solo protege las PANTALLAS. La clave
+-- anon viaja en el JavaScript; con ella, cualquiera que la copie puede leer
+-- fotos visibles, nombres de invitados y corazones, y hasta crearse una sesión
+-- anónima y una fila en guests sin haber pasado por el QR.
+--
+-- Idea: que "ser invitado" (fila en guests) solo se consiga pasando por el
+-- servidor, que sí ve la cookie del QR, y que leer exija ser invitado.
+--
+-- Requiere cambios de app ANTES de aplicar (si no, la app se rompe):
+--   1. Una ruta /api/guests (POST) que valide la cookie happy50_acceso, valide
+--      el JWT del invitado (como /api/photos/[id]) e inserte en guests con la
+--      clave de servicio. /entrar deja de insertar directo.
+--   2. /galeria y /book pasan a exigir invitado (hoy no lo piden): sin fila en
+--      guests ya no verían fotos.
+--   3. /tv lee sin sesión: hay que darle una (por ejemplo, que el admin la
+--      registre como "invitado" especial) o servirle las fotos por el servidor.
+--   4. El bucket sigue público: quien tenga la URL de un archivo lo abre. Cerrar
+--      eso es bucket privado + URLs firmadas, que hoy CLAUDE.md descarta (y
+--      cambia scripts/build-book.ts). Queda fuera de este bloque.
+--
+-- party_tables, milestones y missions siguen públicas: /entrar las necesita
+-- antes de que exista el invitado, y no tienen datos personales.
+
+-- create or replace function is_guest()
+-- returns boolean
+-- language sql
+-- stable
+-- security definer
+-- set search_path = public
+-- as $$
+--   select exists (select 1 from guests where user_id = auth.uid());
+-- $$;
+-- revoke all on function is_guest() from public;
+-- grant execute on function is_guest() to anon, authenticated;
+--
+-- -- Alta de invitados solo desde el servidor (paso 1).
+-- drop policy guests_insert_own on guests;
+-- revoke insert on guests from anon, authenticated;
+--
+-- -- Leer exige ser invitado.
+-- drop policy guests_select_public on guests;
+-- create policy guests_select_guest on guests for select using (is_guest());
+-- drop policy photos_select_visible on photos;
+-- create policy photos_select_visible on photos
+--   for select using (status = 'visible' and is_guest());
+-- drop policy hearts_select_public on hearts;
+-- create policy hearts_select_guest on hearts for select using (is_guest());
+--
+-- Verificar con el mismo truco del bloque 0 (set local role anon, sin claims):
+--   select count(*) from photos;  -- debería dar 0
+--
+-- Deshacer E:
+-- drop policy guests_select_guest on guests;
+-- create policy guests_select_public on guests for select using (true);
+-- drop policy photos_select_visible on photos;
+-- create policy photos_select_visible on photos for select using (status = 'visible');
+-- drop policy hearts_select_guest on hearts;
+-- create policy hearts_select_public on hearts for select using (true);
+-- grant insert on guests to anon, authenticated;
+-- create policy guests_insert_own on guests for insert with check (auth.uid() = user_id);
+-- drop function is_guest();

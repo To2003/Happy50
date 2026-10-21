@@ -1,9 +1,89 @@
 # Noche: registro de trabajo autónomo
 
-Rama `claude/funny-ride-gbt756`. Los PR #2, #3 y #4 ya están mergeados en
-main; el cambio de diseño (estilo de la invitación) sale de una rama
-reiniciada desde main.
+Rama `claude/funny-ride-gbt756`. Los PR #2 a #5 ya están mergeados en main;
+el acceso por QR sale de una rama reiniciada desde main.
 Si se corta la sesión: releer este archivo y `DESIGN.md` para retomar.
+
+## Acceso solo con el QR de la entrada
+
+**Qué hace.** El QR de la entrada apunta a `https://<tu-app>.vercel.app/?k=<clave>`.
+Al abrirlo, el servidor compara `k` con `EVENT_ACCESS_KEY`; si coincide,
+guarda una cookie (30 días, httpOnly) y saca la `k` de la barra de
+direcciones. Quien no tiene esa cookie y abre la home, `/entrar`, `/subir`,
+`/galeria`, `/misiones` o `/book` ve la tarjeta de la invitación con
+"Escaneá el QR de la entrada para ingresar." No hay campo para escribir la
+clave. El código está en `middleware.ts` y `lib/eventAccess.ts`.
+
+No pasan por el control: `/admin` (tiene su contraseña), `/api/health`, el
+borrado de fotos propias (`/api/photos/<id>`, valida la sesión), `/tv`
+(tiene su `?key=`), el manifest, los íconos, `robots.txt` y los archivos
+estáticos.
+
+### Definir la clave en Vercel
+
+1. Generar una clave larga y al azar (nada que se adivine, como "ine50"). Por
+   ejemplo, en una terminal: `openssl rand -base64 24 | tr '+/' '-_' | tr -d '='`.
+   Solo letras, números, `-` y `_`, así no hay que escaparla en la URL.
+2. Vercel → el proyecto → Settings → Environment Variables → Add:
+   nombre `EVENT_ACCESS_KEY`, valor la clave, entorno **Production** (no
+   marcar "Preview" si no hace falta). **Nunca** con prefijo `NEXT_PUBLIC_`.
+3. Redeployar (Deployments → el último → ⋯ → Redeploy). Las variables nuevas
+   recién valen en un deploy nuevo.
+4. Armar el QR con `https://<tu-app>.vercel.app/?k=<clave>`. Si cada mesa
+   tiene su QR, sumar la mesa: `/?k=<clave>&mesa=<código>` (la mesa se
+   conserva, solo se saca la `k`).
+5. Probar: escanear el QR en un teléfono → tiene que abrir la home sin `?k=`
+   en la barra. Abrir el link sin `?k=` en modo privado → tiene que mostrar
+   "Escaneá el QR…".
+
+### Rotar la clave
+
+Cambiar el valor de `EVENT_ACCESS_KEY` en Vercel y redeployar. La cookie es
+un HMAC de la clave, así que **todas las cookies anteriores dejan de valer**:
+todo el mundo tiene que volver a escanear el QR nuevo. Hay que imprimir QR
+nuevos. Conviene hacerlo antes de la fiesta, no durante.
+
+### Apagar el control
+
+- **Borrar la variable** `EVENT_ACCESS_KEY` en Vercel (o dejarla vacía) y
+  redeployar: la app vuelve a funcionar como antes (entra cualquiera con la
+  URL; `/acceso` manda a la home).
+- **O volver al deploy anterior:** Vercel → Deployments → el deploy previo a
+  este cambio → ⋯ → Promote to Production (Instant Rollback). Es inmediato,
+  sin build.
+
+### Límite de intentos
+
+10 claves equivocadas por minuto desde la misma IP bloquean esa IP un minuto
+(ni la clave correcta entra mientras dura). Los aciertos no cuentan, porque en
+la fiesta todos salen a internet por la misma IP del wifi. El contador vive en
+la memoria de cada instancia del servidor: frena a alguien probando claves a
+mano, no a un ataque distribuido (para eso está la clave larga).
+
+### Qué NO protege
+
+- **El acceso directo a Supabase con la clave pública.** La clave anon viaja
+  en el JavaScript de la app (es pública por diseño). Quien la copie puede
+  leer con la API las fotos visibles, los nombres de invitados y los
+  corazones, y hasta crearse un invitado, sin pasar por el QR. El QR protege
+  las pantallas, no la base. El diseño de RLS para cerrarlo está en
+  `sql/propuesta-seguridad.sql`, bloque E (sin aplicar: necesita cambios de
+  app antes).
+- **Los archivos de fotos.** El bucket es público: quien tenga la URL de una
+  foto la abre sin cookie (rutas UUID, no adivinables).
+- **Quien ya tiene el QR.** Si alguien saca foto del QR y la reenvía, entra.
+  La única defensa es rotar la clave.
+- **El QR de `/tv`** apunta a la URL sin clave: con el control prendido, a
+  quien lo escanee sin haber pasado por la entrada le aparece "Escaneá el QR
+  de la entrada". Es lo buscado (la clave no puede ir en `/tv` sin quedar en
+  el JavaScript).
+- **Los logs de Vercel.** La app nunca escribe la clave en un log ni la pone
+  en el HTML, y el 303 hace que el navegador no guarde `/?k=` como paso del
+  historial de la pestaña ni la mande como Referer. Pero los logs de pedidos
+  de Vercel registran la URL completa, con `?k=`, y algunos navegadores
+  guardan la URL escaneada en su historial global. Cualquiera con acceso al
+  proyecto de Vercel puede verla; al rotar la clave, esas URL viejas dejan de
+  servir.
 
 ## Cambio de diseño: estilo de la invitación
 
@@ -125,6 +205,10 @@ Si quisieras cerrarlo, las opciones van de liviana a fuerte: un código de la
 fiesta en `/entrar` (frena el reenvío casual, no a quien lo tenga); exigir
 invitado también en `/galeria` y `/book` (cambio de app); y RLS que solo deje
 leer a sesiones con fila en `guests` (cambio de base). Ninguna aplicada.
+
+**Actualización:** ahora las pantallas piden el QR de la entrada (ver "Acceso
+solo con el QR de la entrada", arriba). La base sigue abierta con la clave
+pública; el diseño para cerrarla es el bloque E de `sql/propuesta-seguridad.sql`.
 
 ## Bug en producción: "Borrar" en /galeria (iPhone Safari)
 
