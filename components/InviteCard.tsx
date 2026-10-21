@@ -41,7 +41,12 @@ export function InviteCard({
         <span className={`absolute font-display leading-none text-blush ${l.hello}`}>HELLO</span>
         <span className={`absolute font-display leading-none text-blush ${l.fifty}`}>50</span>
         <WineGlass className={`absolute -rotate-[14deg] text-white ${l.glass}`} />
-        <span className={`absolute -rotate-[8deg] font-script leading-none text-white ${l.ine}`}>Ine</span>
+        {/* Contorno de 1px del mismo color: engrosa el trazo hacia el pincel de la invitación. */}
+        <span
+          className={`absolute -rotate-[8deg] font-script leading-none text-white [-webkit-text-stroke:1px_currentColor] [paint-order:stroke_fill] ${l.ine}`}
+        >
+          Ine
+        </span>
       </div>
     </div>
   )
