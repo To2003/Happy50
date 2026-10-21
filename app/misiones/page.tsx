@@ -124,13 +124,13 @@ export default function MisionesPage() {
         <PageHeader
           title="Misiones"
           aside={
-            <span className="font-display text-2xl font-semibold tabular-nums text-ink">
+            <span className="font-display text-3xl tabular-nums leading-none text-accent">
               {doneCount}/{totalCount}
             </span>
           }
         >
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-rose/60">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-blush">
             <div
               className="h-full origin-left rounded-full bg-accent transition-transform duration-400 ease-out"
               style={{ transform: `scaleX(${progressPercent / 100})` }}
@@ -177,11 +177,11 @@ export default function MisionesPage() {
                     </span>
                   </>
                 ) : (
-                  <Icon name="target" className="h-6 w-6 text-ink/50" />
+                  <Icon name="target" className="h-6 w-6 text-accent" />
                 )}
                 <span
-                  className={`relative text-balance font-display text-xl font-semibold leading-tight ${
-                    isDone ? 'line-through decoration-accent decoration-2' : ''
+                  className={`relative text-balance font-display text-xl leading-tight ${
+                    isDone ? 'line-through decoration-blush decoration-2' : ''
                   }`}
                 >
                   {mission.title}
