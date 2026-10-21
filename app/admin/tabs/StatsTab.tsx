@@ -138,7 +138,7 @@ export function StatsTab() {
                     className="aspect-square w-full rounded-xl object-cover"
                   />
                   <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-full bg-ink/80 px-2 py-0.5 text-xs font-semibold tabular-nums text-white">
-                    <Icon name="heart" filled className="h-3 w-3 text-rose" />
+                    <Icon name="heart" filled className="h-3 w-3 text-blush" />
                     {photo.hearts}
                   </span>
                 </div>
