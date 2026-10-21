@@ -55,6 +55,40 @@ estaba mergeado). Paso 1 hecho: tokens, `/subir` y home; falta el resto.
 `#E64741` y `#FEA3E0` nunca van en texto chico: los dos últimos controles lo
 confirman (3,57 y 1,65 sobre el fondo).
 
+## Privacidad: cómo se controla hoy el acceso (solo informe, sin cambios)
+
+**Respuesta corta: sí, cualquiera con la URL puede entrar y ver las fotos.**
+No hay contraseña, código de invitación ni lista de invitados.
+
+- **Para subir fotos** (`/subir`, `/misiones`) hace falta ser "invitado": en
+  `/entrar` se escribe un nombre y se elige una mesa (o viene del QR). Eso crea
+  una sesión anónima de Supabase y una fila en `guests`. Cualquiera que abra la
+  URL puede hacerlo; no se valida quién es.
+- **Para ver fotos no hace falta ni eso:** `/galeria`, `/book` y
+  `/book/mesa/<código>` no piden invitado (no redirigen). Muestran todas las
+  fotos visibles a cualquiera que abra el link.
+- **La base es legible con la clave pública:** la clave anon viaja en el
+  JavaScript (es pública por diseño). Con ella, las políticas RLS dejan leer
+  fotos visibles (`photos_select_visible`), nombres de invitados
+  (`guests_select_public`), mesas, misiones, momentos y corazones. Alguien
+  técnico puede listar todo con la API, sin pasar por la app.
+- **Los archivos son públicos:** el bucket `photos` es público; cada foto
+  tiene una URL directa (ruta UUID, no adivinable) que abre sin sesión, también
+  después de un borrado lógico.
+- **`/tv`:** pide `?key=` igual a `NEXT_PUBLIC_TV_KEY`, pero la comparación es
+  en el navegador y la clave está en el bundle: evita entradas por accidente,
+  no es seguridad.
+- **Admin:** sí está protegido (contraseña en el servidor, cookie HMAC
+  httpOnly).
+- **Lo que sí frena la difusión:** `noindex`/`nofollow` y `robots.txt` (no
+  aparece en buscadores) y, desde este cambio, sin tarjeta al pegar el link.
+  Nada de eso impide entrar a quien tenga la URL.
+
+Si quisieras cerrarlo, las opciones van de liviana a fuerte: un código de la
+fiesta en `/entrar` (frena el reenvío casual, no a quien lo tenga); exigir
+invitado también en `/galeria` y `/book` (cambio de app); y RLS que solo deje
+leer a sesiones con fila en `guests` (cambio de base). Ninguna aplicada.
+
 ## Bug en producción: "Borrar" en /galeria (iPhone Safari)
 
 **Causa más probable (no es regresión de anoche):** el borrado era un
