@@ -60,7 +60,7 @@ function GridThumb({
       className={`relative aspect-square overflow-hidden rounded-xl ${stagger.className ?? ''}`}
     >
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
-      <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
+      <span aria-hidden className="absolute inset-0 animate-pulse bg-blush/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={url}
@@ -163,7 +163,7 @@ function Viewer({
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
+            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-blush active:bg-white/10"
           >
             <Icon name="trash" className="h-5 w-5" />
             Borrar
@@ -186,7 +186,7 @@ function Viewer({
           className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-semibold disabled:opacity-40"
         >
           <span key={popKey} className={popKey > 0 ? 'inline-flex animate-pop' : 'inline-flex'}>
-            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-rose' : ''}`} />
+            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-blush' : ''}`} />
           </span>
           <span className="tabular-nums">{heartCount}</span>
         </button>
