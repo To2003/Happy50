@@ -163,7 +163,7 @@ function Viewer({
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-blush active:bg-white/10"
+            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-white active:bg-white/10"
           >
             <Icon name="trash" className="h-5 w-5" />
             Borrar
