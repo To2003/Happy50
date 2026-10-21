@@ -97,7 +97,7 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
           {photo.hearts > 0 && (
             <>
               {' · '}
-              <Icon name="heart" filled className="h-4 w-4 text-rose" />
+              <Icon name="heart" filled className="h-4 w-4 text-blush" />
               <span className="tabular-nums">{photo.hearts}</span>
             </>
           )}
@@ -205,7 +205,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
             <a
               key={m.id}
               href={`#capitulo-${m.id}`}
-              className="press flex h-11 shrink-0 items-center rounded-full border border-ink/20 bg-surface px-4 text-sm font-semibold text-ink"
+              className="press flex h-11 shrink-0 items-center rounded-full border border-blush bg-surface px-4 text-sm font-semibold text-ink"
             >
               {m.name}
             </a>
@@ -225,7 +225,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
           <Reveal key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
-            <h2 className="text-balance font-display text-3xl font-semibold leading-tight text-ink">
+            <h2 className="text-balance break-words font-display text-3xl uppercase leading-none text-accent">
               {chapterTitle(milestone)}
             </h2>
             {/* La primera foto de cada capítulo va grande, como apertura de página. */}
@@ -243,7 +243,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
                     index === 0 ? 'col-span-2 row-span-2' : ''
                   }`}
                 >
-                  <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
+                  <span aria-hidden className="absolute inset-0 animate-pulse bg-blush/30" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={storage.getPublicUrl(photo.thumb_path)}
@@ -261,7 +261,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
       {!tableFilter && tables.length > 0 && (
         <section className="flex flex-col gap-3 px-4">
-          <h2 className="text-balance font-display text-3xl font-semibold leading-tight text-ink">El book de tu mesa</h2>
+          <h2 className="text-balance font-display text-3xl uppercase leading-none text-accent">El book de tu mesa</h2>
           <div className="flex flex-wrap gap-2">
             {tables.map((table) => (
               <Link
