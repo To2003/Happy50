@@ -132,7 +132,7 @@ export default function MisionesPage() {
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-rose/60">
             <div
-              className="h-full origin-left rounded-full bg-gold transition-transform duration-400 ease-out"
+              className="h-full origin-left rounded-full bg-accent transition-transform duration-400 ease-out"
               style={{ transform: `scaleX(${progressPercent / 100})` }}
             />
           </div>
@@ -172,7 +172,7 @@ export default function MisionesPage() {
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     <span className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/90 to-transparent" />
-                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-fuchsia">
+                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-accent">
                       <Icon name="check" className="h-5 w-5" />
                     </span>
                   </>
@@ -181,7 +181,7 @@ export default function MisionesPage() {
                 )}
                 <span
                   className={`relative text-balance font-display text-xl font-semibold leading-tight ${
-                    isDone ? 'line-through decoration-gold decoration-2' : ''
+                    isDone ? 'line-through decoration-accent decoration-2' : ''
                   }`}
                 >
                   {mission.title}

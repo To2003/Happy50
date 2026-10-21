@@ -5,21 +5,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Editorial cálida: crema rosado, texto bordó, un solo acento fucsia
-        // profundo y dorado solo en detalles finos (no en texto: 3.2:1).
-        bg: '#FAF0EA',
-        surface: '#FFFAF6',
-        rose: '#E3C4C3',
-        fuchsia: '#A3124A',
-        gold: '#A88232',
+        // Paleta de la invitación (medida sobre la imagen). Contrastes en
+        // docs/NOCHE.md: `invite` y `blush` nunca van en texto chico.
+        bg: '#FFF0F7',
+        surface: '#FFF8FB',
+        // Rojo accesible: botones con texto blanco, texto rojo, links, activo.
+        accent: '#C8302B',
+        // Rojo de la invitación: superficies grandes y texto blanco de 24px o más.
+        invite: '#E64741',
+        // Rosa de la invitación: solo decorativo (letras gigantes, chips, progreso).
+        blush: '#FEA3E0',
+        rose: '#F5C6DA',
         ink: '#4A1626',
+        muted: '#7A4D5A',
         danger: '#9B2C2C',
-        // Tonos de las tarjetas de misión: tintes suaves de la paleta (rosa,
-        // dorado, bordó, fucsia), distintos entre sí pero sin caramelo.
-        'card-rose': '#F2DCD8',
-        'card-gold': '#EFE3C8',
-        'card-mauve': '#E9D3DB',
-        'card-peach': '#F5E4DA',
+        // Tonos de las tarjetas de misión: tintes suaves de rosa y rojo.
+        'card-rose': '#FFE0EF',
+        'card-gold': '#FFE1DE',
+        'card-mauve': '#FCD9EE',
+        'card-peach': '#FFEAE4',
       },
       // Sombras tintadas con ink (no gris neutro) para que la profundidad
       // se lea cálida sobre el crema.
@@ -61,6 +65,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ['var(--font-display)'],
+        script: ['var(--font-script)'],
         body: ['var(--font-body)'],
       },
     },

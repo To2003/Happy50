@@ -127,7 +127,7 @@ export function ModeracionTab() {
                 disabled={pending === `${photo.id}:featured`}
                 aria-pressed={photo.is_featured}
                 className={`press flex h-11 items-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold disabled:opacity-40 ${
-                  photo.is_featured ? 'bg-fuchsia text-white' : 'border border-ink/20 bg-surface text-ink'
+                  photo.is_featured ? 'bg-accent text-white' : 'border border-ink/20 bg-surface text-ink'
                 }`}
               >
                 <Icon name="star" filled={photo.is_featured} className="h-4 w-4" />

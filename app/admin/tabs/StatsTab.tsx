@@ -90,7 +90,7 @@ export function StatsTab() {
                   {/* Ancho estático (no animado): así la punta redondeada no se deforma. */}
                   <span className="h-3">
                     <span
-                      className="block h-full min-w-1 rounded-r bg-fuchsia"
+                      className="block h-full min-w-1 rounded-r bg-accent"
                       style={{ width: `${(h.count / maxHourCount) * 100}%` }}
                     />
                   </span>

@@ -1,13 +1,22 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import { DM_Sans, Fraunces } from 'next/font/google'
+import { Anton, DM_Sans, Nothing_You_Could_Do } from 'next/font/google'
 import './globals.css'
 
-// Variables: wght va siempre; de los ejes extra solo SOFT (sin opsz ni WONK).
-const fraunces = Fraunces({
+// Anton: el "HELLO" y el "50" de la invitación, y los títulos de display.
+const anton = Anton({
   subsets: ['latin'],
-  axes: ['SOFT'],
+  weight: '400',
   variable: '--font-display',
+  display: 'swap',
+})
+
+// La manuscrita más parecida al "Ine" de la invitación (comparada lado a lado
+// con Mansalva, Reenie Beanie y Caveat Brush: trazo fino e inclinado).
+const script = Nothing_You_Could_Do({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-script',
   display: 'swap',
 })
 
@@ -29,12 +38,12 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FAF0EA',
+  themeColor: '#FFF0F7',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={`${fraunces.variable} ${dmSans.variable}`}>
+    <html lang="es" className={`${anton.variable} ${script.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-bg font-body text-ink antialiased">
         <a
           href="#contenido"

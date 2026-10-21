@@ -5,8 +5,8 @@
 :root {
   color-scheme: light;
   touch-action: manipulation;
-  accent-color: theme('colors.fuchsia');
-  caret-color: theme('colors.fuchsia');
+  accent-color: theme('colors.accent');
+  caret-color: theme('colors.accent');
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -17,7 +17,7 @@
 
 /* Foco visible solo con teclado; el tap no deja anillo. */
 :focus-visible {
-  outline: 3px solid theme('colors.fuchsia');
+  outline: 3px solid theme('colors.accent');
   outline-offset: 2px;
 }
 
@@ -103,17 +103,11 @@ button:not(:disabled):active,
   }
 }
 
-/* Títulos en Fraunces con el eje SOFT a mitad: cálido sin ponerse retro. */
-.font-display {
-  font-variation-settings: 'SOFT' 50;
-  letter-spacing: -0.02em;
-}
-
-/* El gesto de marca: un festón de línea fina dorada, como el borde calado
-   de una invitación. Una sola vez por pantalla, entre el hero y el resto. */
+/* El gesto de marca: un festón de línea fina roja, como el borde calado de
+   una invitación. Una sola vez por pantalla, entre el hero y el resto. */
 .scallop-edge {
   height: 8px;
-  background-color: theme('colors.gold');
+  background-color: theme('colors.accent');
   -webkit-mask-image: radial-gradient(circle at 8px 0, transparent 6px, black 6.5px, black 7.5px, transparent 8px);
   mask-image: radial-gradient(circle at 8px 0, transparent 6px, black 6.5px, black 7.5px, transparent 8px);
   -webkit-mask-size: 16px 8px;

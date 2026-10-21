@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-// Fucsia y dorado de la paleta, más un rosa claro para dar aire.
-const COLORS = ['#A3124A', '#A88232', '#E3C4C3']
+// Rojo, rosa y blanco de la invitación.
+const COLORS = ['#C8302B', '#FEA3E0', '#FFFFFF']
 const PIECE_COUNT = 16
 
 interface Piece {
@@ -26,7 +26,7 @@ export function Confetti({ trigger }: { trigger: number }) {
     const next: Piece[] = Array.from({ length: PIECE_COUNT }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      color: COLORS[i % COLORS.length] ?? '#A3124A',
+      color: COLORS[i % COLORS.length] ?? '#C8302B',
       delay: Math.random() * 0.12,
       duration: 0.9 + Math.random() * 0.4,
       rotate: Math.random() * 360,

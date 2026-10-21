@@ -67,7 +67,7 @@ export function AdminDashboard() {
                 onClick={() => setTab(t.id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex h-11 shrink-0 items-center gap-2.5 rounded-full px-4 text-sm font-semibold lg:rounded-xl ${
-                  active ? 'bg-fuchsia text-white' : 'text-ink/80'
+                  active ? 'bg-accent text-white' : 'text-ink/80'
                 }`}
               >
                 <Icon name={t.icon} className="h-5 w-5" />
