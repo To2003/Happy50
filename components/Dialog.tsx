@@ -64,7 +64,7 @@ export function Dialog({
         aria-labelledby={titleId}
         className="flex w-full max-w-sm animate-enter flex-col gap-6 rounded-3xl bg-surface p-6 text-ink shadow-lift"
       >
-        <h2 id={titleId} className="text-balance font-display text-xl font-semibold leading-snug">
+        <h2 id={titleId} className="text-balance text-lg font-semibold leading-snug">
           {title}
         </h2>
         {children}

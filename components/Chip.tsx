@@ -19,7 +19,7 @@ export function Chip({
       onClick={onClick}
       aria-pressed={selected}
       className={`flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-full px-4 text-base font-semibold ${
-        selected ? 'bg-fuchsia text-white' : 'border border-ink/20 bg-surface text-ink'
+        selected ? 'bg-accent text-white' : 'border border-blush bg-surface text-ink'
       } ${className}`}
     >
       {selected && <Icon name="check" className="h-4 w-4 shrink-0" />}

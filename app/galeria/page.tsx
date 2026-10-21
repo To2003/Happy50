@@ -21,7 +21,6 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 import { morphClose, morphOpen } from '@/lib/viewTransition'
-import { useSharePhoto } from '@/lib/useSharePhoto'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -61,7 +60,7 @@ function GridThumb({
       className={`relative aspect-square overflow-hidden rounded-xl ${stagger.className ?? ''}`}
     >
       {/* Placeholder de carga: la foto lo tapa apenas llega. */}
-      <span aria-hidden className="absolute inset-0 animate-pulse bg-rose/30" />
+      <span aria-hidden className="absolute inset-0 animate-pulse bg-blush/30" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={url}
@@ -144,7 +143,6 @@ function Viewer({
 
   const isOwn = guest !== null && guest.id === photo.guest_id
   const url = storage.getPublicUrl(photo.storage_path)
-  const share = useSharePhoto(url, `foto-${photo.id}.jpg`)
 
   return (
     <div
@@ -161,28 +159,16 @@ function Viewer({
         >
           <Icon name="x" className="h-7 w-7" />
         </button>
-        <div className="flex items-center gap-1">
-          {share && (
-            <button
-              type="button"
-              onClick={() => void share()}
-              className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold active:bg-white/10"
-            >
-              <Icon name="share" className="h-5 w-5" />
-              Compartir
-            </button>
-          )}
         {isOwn && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-rose active:bg-white/10"
+            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold text-white active:bg-white/10"
           >
             <Icon name="trash" className="h-5 w-5" />
             Borrar
           </button>
         )}
-        </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center overflow-hidden">
@@ -200,7 +186,7 @@ function Viewer({
           className="flex h-14 items-center gap-2 rounded-full bg-white/10 px-5 text-lg font-semibold disabled:opacity-40"
         >
           <span key={popKey} className={popKey > 0 ? 'inline-flex animate-pop' : 'inline-flex'}>
-            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-rose' : ''}`} />
+            <Icon name="heart" filled={hearted} className={`h-6 w-6 ${hearted ? 'text-blush' : ''}`} />
           </span>
           <span className="tabular-nums">{heartCount}</span>
         </button>

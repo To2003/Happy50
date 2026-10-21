@@ -8,12 +8,12 @@ export const metadata: Metadata = { title: 'No encontramos esta página' }
 export default function NotFound() {
   return (
     <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-between gap-10 px-6 pb-10 pt-12">
-      <p aria-hidden className="font-display text-[min(38vw,30svh)] font-semibold leading-[0.8] tracking-[-0.05em] text-fuchsia/20">
+      <p aria-hidden className="font-display text-[min(48vw,32svh)] leading-[0.8] text-blush">
         404
       </p>
       <div className="flex flex-col gap-6">
         <div className="scallop-edge" />
-        <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">
+        <h1 className="text-balance font-display text-4xl uppercase leading-none text-accent">
           No encontramos esta página
         </h1>
         <p className="max-w-[32ch] text-lg leading-snug text-ink">

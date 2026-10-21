@@ -12,12 +12,12 @@ export function Input({
   return (
     <input
       aria-invalid={invalid || undefined}
-      className={`${BASE} w-full ${invalid ? 'border-danger' : 'border-ink/20'} ${className}`}
+      className={`${BASE} w-full ${invalid ? 'border-danger' : 'border-accent'} ${className}`}
       {...rest}
     />
   )
 }
 
 export function Select({ className = '', ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={`${BASE} h-12 rounded-full border-ink/20 font-semibold ${className}`} {...rest} />
+  return <select className={`${BASE} h-12 rounded-full border-accent font-semibold ${className}`} {...rest} />
 }

@@ -124,15 +124,15 @@ export default function MisionesPage() {
         <PageHeader
           title="Misiones"
           aside={
-            <span className="font-display text-2xl font-semibold tabular-nums text-ink">
+            <span className="font-display text-3xl tabular-nums leading-none text-accent">
               {doneCount}/{totalCount}
             </span>
           }
         >
           <p className="text-base text-ink/70">Tocá una para ir a sacarle la foto.</p>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-rose/60">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-blush/70">
             <div
-              className="h-full origin-left rounded-full bg-gold transition-transform duration-400 ease-out"
+              className="h-full origin-left rounded-full bg-accent transition-transform duration-400 ease-out"
               style={{ transform: `scaleX(${progressPercent / 100})` }}
             />
           </div>
@@ -172,16 +172,16 @@ export default function MisionesPage() {
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     <span className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/90 to-transparent" />
-                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-fuchsia">
+                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-accent">
                       <Icon name="check" className="h-5 w-5" />
                     </span>
                   </>
                 ) : (
-                  <Icon name="target" className="h-6 w-6 text-ink/50" />
+                  <Icon name="target" className="h-6 w-6 text-accent" />
                 )}
                 <span
-                  className={`relative text-balance font-display text-xl font-semibold leading-tight ${
-                    isDone ? 'line-through decoration-gold decoration-2' : ''
+                  className={`relative text-balance font-display text-xl leading-tight ${
+                    isDone ? 'line-through decoration-blush decoration-2' : ''
                   }`}
                 >
                   {mission.title}

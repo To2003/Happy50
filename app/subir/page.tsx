@@ -1,7 +1,6 @@
 'use client'
 
 import { Suspense, useEffect, useRef, useState, type ChangeEvent } from 'react'
-import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { findExistingGuest } from '@/lib/guest'
 import { listActiveMissions, type Mission } from '@/lib/missions'
@@ -13,6 +12,7 @@ import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
 import { Icon, type IconName } from '@/components/Icon'
+import { InviteCard } from '@/components/InviteCard'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Chip } from '@/components/Chip'
@@ -20,10 +20,6 @@ import { Input } from '@/components/Field'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 
-// Foto del hero. Con null el hero es tipográfico (el "50" grande); al poner
-// la ruta (ej. '/ines.jpg') pasa a foto a sangre con degradado inferior, sin
-// tocar nada más. next/image la sirve en WebP/AVIF; el original, < 150 KB.
-const HERO_PHOTO: string | null = null
 
 interface StagedFile {
   id: string
@@ -62,8 +58,8 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: string }> = {
   waiting: { name: 'clock', className: 'text-ink/70' },
-  uploading: { name: 'loader', className: 'animate-spin text-fuchsia' },
-  done: { name: 'check', className: 'text-fuchsia' },
+  uploading: { name: 'loader', className: 'animate-spin text-accent' },
+  done: { name: 'check', className: 'text-accent' },
   failed: { name: 'alert', className: 'text-danger' },
 }
 
@@ -104,7 +100,7 @@ function QueueRow({
             <div className="h-1 overflow-hidden rounded-full bg-rose/60" aria-hidden>
               <div
                 className={`h-full origin-left rounded-full transition-transform duration-400 ease-out ${
-                  item.status === 'done' ? 'bg-gold' : 'bg-fuchsia'
+                  item.status === 'done' ? 'bg-accent' : 'bg-accent'
                 }`}
                 style={{ transform: `scaleX(${progress / 100})` }}
               />
@@ -297,44 +293,25 @@ function SubirScreen() {
       {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main id="contenido" className="flex min-h-screen flex-col gap-6 pb-12">
-        {/* Con foto: alto fijo (42svh), sin salto de layout al cargar y con
-            "Sacar foto" visible sin scrollear a 360x640. Sin foto: campo bordó
-            del alto de su contenido. */}
-        <section
-          className={`relative flex flex-col justify-end overflow-hidden bg-ink pb-6 text-white ${
-            HERO_PHOTO ? 'h-[42svh] min-h-[240px]' : 'pt-12'
-          }`}
-        >
-          {HERO_PHOTO && (
-            <>
-              <Image
-                src={HERO_PHOTO}
-                alt=""
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[50%_30%]"
-              />
-              <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink/85 to-transparent" />
-            </>
-          )}
-          <div className="relative mx-auto flex w-full max-w-xl flex-col gap-2 px-6">
-            <h1 className="animate-enter text-balance font-display text-4xl font-semibold leading-none">
-              ¡Sumate a la fiesta!
-            </h1>
-            <p className="max-w-[34ch] animate-enter text-base leading-snug text-white/90 [animation-delay:60ms]">
-              Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
-            </p>
-            {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
+      <main id="contenido" className="flex min-h-screen flex-col gap-5 pb-12">
+        <InviteCard />
+        <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-2 px-6">
+          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent">
+            ¡Sumate a la fiesta!
+          </h1>
+          <p className="animate-enter text-base leading-snug text-muted [animation-delay:60ms]">
+            Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
+          </p>
+          {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
+          {photoCount !== null && (
             <p
-              key={photoCount ?? 'cargando'}
-              className="animate-enter text-sm font-semibold tabular-nums [animation-delay:120ms]"
+              key={photoCount}
+              className="animate-enter rounded-full bg-accent px-3 py-1 text-sm font-semibold tabular-nums text-white [animation-delay:120ms]"
             >
               {nightCounterLabel(photoCount)}
             </p>
-          </div>
-        </section>
+          )}
+        </div>
         <div className="scallop-edge" />
 
         <div className="mx-auto flex w-full max-w-xl animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">

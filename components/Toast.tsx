@@ -53,7 +53,7 @@ export function useToast() {
         >
           <Icon
             name={state.tone === 'success' ? 'check' : 'alert'}
-            className={`h-5 w-5 shrink-0 ${state.tone === 'success' ? 'text-gold' : 'text-rose'}`}
+            className={`h-5 w-5 shrink-0 ${state.tone === 'success' ? 'text-blush' : 'text-rose'}`}
           />
           {state.message}
         </div>

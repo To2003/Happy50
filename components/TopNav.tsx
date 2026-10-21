@@ -27,7 +27,7 @@ export function TopNav() {
               className="absolute bottom-0 left-0 flex h-1 w-1/3 justify-center"
               style={{ transform: `translateX(${activeIndex * 100}%)` }}
             >
-              <span className="h-full w-12 animate-grow rounded-full bg-gold" />
+              <span className="h-full w-12 animate-grow rounded-full bg-accent" />
             </span>
           )}
           {ITEMS.map((item) => {
@@ -38,7 +38,7 @@ export function TopNav() {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={`press flex flex-1 flex-col items-center gap-1 py-2.5 text-sm font-semibold ${
-                  active ? 'text-fuchsia' : 'text-ink/70'
+                  active ? 'text-accent' : 'text-ink/70'
                 }`}
               >
                 <Icon name={item.icon} />

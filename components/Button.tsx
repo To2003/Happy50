@@ -5,8 +5,8 @@ type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 type Size = 'lg' | 'md' | 'sm'
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-fuchsia text-white shadow-soft',
-  secondary: 'border border-ink/20 bg-surface text-ink',
+  primary: 'bg-accent text-white shadow-soft',
+  secondary: 'border border-accent text-accent',
   danger: 'bg-danger text-white',
   ghost: 'text-ink',
 }
@@ -19,7 +19,7 @@ const SIZES: Record<Size, string> = {
 
 // Clases compartidas con los links que se ven como botón (<a> / <Link>).
 export function buttonClasses(variant: Variant = 'primary', size: Size = 'md', extra = '') {
-  return `press inline-flex items-center justify-center rounded-full font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${extra}`
+  return `press inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${extra}`
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
