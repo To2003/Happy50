@@ -14,7 +14,7 @@ export function PageHeader({
   return (
     <header className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-balance font-display text-4xl font-semibold leading-none text-ink">{title}</h1>
+        <h1 className="min-w-0 text-balance break-words font-display text-4xl uppercase leading-none text-accent">{title}</h1>
         {aside}
       </div>
       {children}
