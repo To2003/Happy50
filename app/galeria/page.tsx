@@ -21,7 +21,6 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useInitialStagger, type StaggerProps } from '@/lib/useInitialStagger'
 import { morphClose, morphOpen } from '@/lib/viewTransition'
-import { useSharePhoto } from '@/lib/useSharePhoto'
 
 type Photo = Database['public']['Views']['photos_with_effective_milestone']['Row']
 type PartyTable = Database['public']['Tables']['party_tables']['Row']
@@ -144,7 +143,6 @@ function Viewer({
 
   const isOwn = guest !== null && guest.id === photo.guest_id
   const url = storage.getPublicUrl(photo.storage_path)
-  const share = useSharePhoto(url, `foto-${photo.id}.jpg`)
 
   return (
     <div
@@ -161,17 +159,6 @@ function Viewer({
         >
           <Icon name="x" className="h-7 w-7" />
         </button>
-        <div className="flex items-center gap-1">
-          {share && (
-            <button
-              type="button"
-              onClick={() => void share()}
-              className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold active:bg-white/10"
-            >
-              <Icon name="share" className="h-5 w-5" />
-              Compartir
-            </button>
-          )}
         {isOwn && (
           <button
             type="button"
@@ -182,7 +169,6 @@ function Viewer({
             Borrar
           </button>
         )}
-        </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center overflow-hidden">

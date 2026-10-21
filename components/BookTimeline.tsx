@@ -11,7 +11,6 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { storage } from '@/lib/storage'
 import { morphClose, morphOpen } from '@/lib/viewTransition'
 import { chaptersWithPhotos, groupByChapter } from '@/lib/book'
-import { useSharePhoto } from '@/lib/useSharePhoto'
 import type { Database } from '@/lib/database.types'
 
 type Milestone = Database['public']['Tables']['milestones']['Row']
@@ -69,7 +68,6 @@ function Reveal({ children, className, ...rest }: HTMLAttributes<HTMLElement>) {
 
 function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
   const url = storage.getPublicUrl(photo.storage_path)
-  const share = useSharePhoto(url, `foto-${photo.id}.jpg`)
   useDialogBehavior(onClose)
 
   return (
@@ -87,16 +85,6 @@ function Viewer({ photo, onClose }: { photo: BookPhoto; onClose: () => void }) {
         >
           <Icon name="x" className="h-7 w-7" />
         </button>
-        {share && (
-          <button
-            type="button"
-            onClick={() => void share()}
-            className="flex h-12 items-center gap-2 rounded-full px-4 text-base font-semibold active:bg-white/10"
-          >
-            <Icon name="share" className="h-5 w-5" />
-            Compartir
-          </button>
-        )}
       </div>
       <div className="flex flex-1 items-center justify-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}

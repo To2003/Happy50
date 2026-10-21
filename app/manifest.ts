@@ -6,7 +6,6 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: '50 años',
     short_name: '50 años',
-    description: 'Álbum colaborativo en vivo del cumpleaños',
     start_url: '/',
     display: 'standalone',
     background_color: '#FAF0EA',

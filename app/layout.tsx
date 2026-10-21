@@ -26,14 +26,11 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-
+// Evento privado solo para invitados: título neutro, sin descripción ni
+// Open Graph/Twitter, así pegar el link en WhatsApp no arma ninguna tarjeta.
+// Y fuera de los buscadores (también lo dice app/robots.ts).
 export const metadata: Metadata = {
-  // Para que la imagen Open Graph salga con URL absoluta al compartir el link.
-  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
-  title: { default: '50 años', template: '%s · 50 años' },
-  description: 'Álbum colaborativo en vivo del cumpleaños',
-  // Evento privado: fuera de los buscadores (también lo dice app/robots.ts).
+  title: { default: 'Álbum', template: '%s · Álbum' },
   robots: { index: false, follow: false },
 }
 
