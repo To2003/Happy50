@@ -26,7 +26,7 @@ export function TopNav() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`press flex h-12 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-accent text-sm font-semibold transition-colors ${
+                className={`press flex h-12 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-accent text-sm font-semibold ${
                   active ? 'bg-accent text-white' : 'bg-surface text-accent-text'
                 }`}
               >
