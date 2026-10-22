@@ -11,6 +11,8 @@ const config: Config = {
         surface: '#FFF8FB',
         // Rojo accesible: botones con texto blanco, texto rojo, links, activo.
         accent: '#C8302B',
+        // Rojo para texto chico sobre los fondos rosas (accent no llega a 4.5:1 sobre bg).
+        'accent-text': '#B92A27',
         // Rojo de la invitación: superficies grandes y texto blanco de 24px o más.
         invite: '#E64741',
         // Rosa de la invitación: solo decorativo (letras gigantes, chips, progreso).
@@ -45,10 +47,6 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
-        grow: {
-          from: { opacity: '0', transform: 'scaleX(0.3)' },
-          to: { opacity: '1', transform: 'scaleX(1)' },
-        },
         pop: {
           '0%': { transform: 'scale(1)' },
           '40%': { transform: 'scale(1.35)' },
@@ -60,7 +58,6 @@ const config: Config = {
       animation: {
         enter: 'enter 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
         page: 'enter 200ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
-        grow: 'grow 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
         pop: 'pop 300ms cubic-bezier(0.23, 1, 0.32, 1)',
       },
       fontFamily: {
