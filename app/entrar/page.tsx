@@ -79,7 +79,7 @@ function EntrarForm() {
   return (
     <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-center gap-8 px-6 py-12">
       <div className="flex animate-enter flex-col gap-6">
-        <h1 className="text-balance font-display text-4xl uppercase leading-none text-accent">
+        <h1 className="text-balance font-display text-4xl uppercase leading-none text-accent-text">
           ¿Cómo te llamás?
         </h1>
         <div className="scallop-edge" />
@@ -100,7 +100,7 @@ function EntrarForm() {
 
         {!tableFromQr && (
           <div className="flex flex-col gap-3">
-            <p className="font-display text-2xl uppercase leading-none text-accent">¿En qué mesa estás?</p>
+            <p className="font-display text-2xl uppercase leading-none text-accent-text">¿En qué mesa estás?</p>
             {mesaCode && (
               <p className="text-base text-ink/70">
                 No encontramos esa mesa, elegí la tuya de la lista.

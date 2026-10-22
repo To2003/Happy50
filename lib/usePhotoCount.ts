@@ -33,3 +33,12 @@ export function usePhotoCount(): number | null {
 
   return count
 }
+
+// Texto del contador. /subir dejó de mostrarlo (pedido de diseño), pero queda
+// listo por si vuelve.
+export function photoCountLabel(count: number | null): string {
+  if (count === null) return ''
+  if (count === 0) return 'Sé la primera persona en subir una foto'
+  if (count === 1) return 'Va 1 foto'
+  return `Van ${count} fotos`
+}

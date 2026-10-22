@@ -7,10 +7,13 @@ const config: Config = {
       colors: {
         // Paleta de la invitación (medida sobre la imagen). Contrastes en
         // docs/NOCHE.md: `invite` y `blush` nunca van en texto chico.
-        bg: '#FFF0F7',
-        surface: '#FFF8FB',
-        // Rojo accesible: botones con texto blanco, texto rojo, links, activo.
+        // Fondo rosa claro (siempre más claro que blush) y superficies un tono arriba.
+        bg: '#FFE0F1',
+        surface: '#FFF0F7',
+        // Rojo de relleno: botones con texto blanco, bordes, activo, festón.
         accent: '#C8302B',
+        // Rojo de TODO texto rojo: accent sobre bg no llega a 4.5:1 (4,39).
+        'accent-text': '#B92A27',
         // Rojo de la invitación: superficies grandes y texto blanco de 24px o más.
         invite: '#E64741',
         // Rosa de la invitación: solo decorativo (letras gigantes, chips, progreso).
@@ -19,11 +22,11 @@ const config: Config = {
         ink: '#4A1626',
         muted: '#7A4D5A',
         danger: '#9B2C2C',
-        // Tonos de las tarjetas de misión: tintes suaves de rosa y rojo.
-        'card-rose': '#FFE0EF',
-        'card-gold': '#FFE1DE',
-        'card-mauve': '#FCD9EE',
-        'card-peach': '#FFEAE4',
+        // Tonos de las tarjetas de misión: tintes suaves, todos más claros que bg.
+        'card-rose': '#FFF0F7',
+        'card-gold': '#FFEEEA',
+        'card-mauve': '#FFF6FB',
+        'card-peach': '#FFF4EE',
       },
       // Sombras tintadas con ink (no gris neutro) para que la profundidad
       // se lea cálida sobre el crema.
@@ -45,10 +48,6 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
-        grow: {
-          from: { opacity: '0', transform: 'scaleX(0.3)' },
-          to: { opacity: '1', transform: 'scaleX(1)' },
-        },
         pop: {
           '0%': { transform: 'scale(1)' },
           '40%': { transform: 'scale(1.35)' },
@@ -60,7 +59,6 @@ const config: Config = {
       animation: {
         enter: 'enter 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
         page: 'enter 200ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
-        grow: 'grow 250ms cubic-bezier(0.23, 1, 0.32, 1) backwards',
         pop: 'pop 300ms cubic-bezier(0.23, 1, 0.32, 1)',
       },
       fontFamily: {

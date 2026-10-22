@@ -17,7 +17,7 @@ function StatTile({ label, value, detail }: { label: string; value: string; deta
   return (
     <Card className="flex flex-col gap-1">
       <p className="text-sm font-semibold text-ink/70">{label}</p>
-      <p className="font-display text-4xl tabular-nums text-accent">{value}</p>
+      <p className="font-display text-4xl tabular-nums text-accent-text">{value}</p>
       {detail && <p className="text-sm text-ink/70">{detail}</p>}
     </Card>
   )
@@ -72,7 +72,7 @@ export function StatsTab() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-xl text-accent">Fotos por hora</h2>
+        <h2 className="font-display text-xl text-accent-text">Fotos por hora</h2>
         {stats.photosByHour.length === 0 ? (
           <EmptyState icon="chart">
             <p className="text-base text-ink/70">Todavía no hay fotos.</p>
@@ -104,7 +104,7 @@ export function StatsTab() {
 
       <div className="grid gap-10 md:grid-cols-2">
         <section className="flex flex-col gap-3">
-          <h2 className="font-display text-xl text-accent">Top uploaders</h2>
+          <h2 className="font-display text-xl text-accent-text">Top uploaders</h2>
           {stats.topUploaders.length === 0 ? (
             <p className="text-base text-ink/70">Todavía no hay fotos.</p>
           ) : (
@@ -123,7 +123,7 @@ export function StatsTab() {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="font-display text-xl text-accent">Top votadas</h2>
+          <h2 className="font-display text-xl text-accent-text">Top votadas</h2>
           {stats.topVoted.length === 0 ? (
             <p className="text-base text-ink/70">Todavía no hay fotos.</p>
           ) : (

@@ -225,7 +225,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         const photos = photosByMilestone.get(milestone.id) ?? []
         return (
           <Reveal key={milestone.id} id={`capitulo-${milestone.id}`} className="flex scroll-mt-20 flex-col gap-4 px-4">
-            <h2 className="text-balance break-words font-display text-3xl uppercase leading-none text-accent">
+            <h2 className="text-balance break-words font-display text-3xl uppercase leading-none text-accent-text">
               {chapterTitle(milestone)}
             </h2>
             {/* La primera foto de cada capítulo va grande, como apertura de página. */}
@@ -261,7 +261,7 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
 
       {!tableFilter && tables.length > 0 && (
         <section className="flex flex-col gap-3 px-4">
-          <h2 className="text-balance font-display text-3xl uppercase leading-none text-accent">El book de tu mesa</h2>
+          <h2 className="text-balance font-display text-3xl uppercase leading-none text-accent-text">El book de tu mesa</h2>
           <div className="flex flex-wrap gap-2">
             {tables.map((table) => (
               <Link

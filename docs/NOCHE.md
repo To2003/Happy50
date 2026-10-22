@@ -132,44 +132,50 @@ Paso 2:
 
 ### Contraste de todos los pares texto/fondo y de componentes
 
+Recalculado con los cambios del 22/10: fondo `#FFE0F1`, superficies
+`#FFF0F7`, texto rojo `#B92A27` y tintes de misión más claros que el fondo.
+
 **Texto** (AA: 4,5 normal, 3 grande)
 
 | Texto | Fondo | Uso | Contraste | Normal | Grande |
 |---|---|---|---|---|---|
-| `#4A1626` | `#FFF0F7` | Texto principal | 13.29 | sí | sí |
-| `#4A1626` | `#FFF8FB` | Texto en tarjetas, inputs y chips | 14.00 | sí | sí |
-| `#7A4D5A` | `#FFF0F7` | Texto secundario (bajada de /subir) | 6.28 | sí | sí |
-| `#7A4D5A` | `#FFF8FB` | Texto secundario en tarjetas | 6.61 | sí | sí |
-| `#4A1626 al 70%` | `#FFF0F7` | Secundario text-ink/70 | 5.47 | sí | sí |
-| `#4A1626 al 70%` | `#FFF8FB` | text-ink/70 en tarjetas y vacíos | 5.62 | sí | sí |
-| `#C8302B` | `#FFF0F7` | Títulos Anton, links, nav activo, botón secundario | 4.87 | sí | sí |
-| `#C8302B` | `#FFF8FB` | Texto rojo en tarjetas y selects | 5.13 | sí | sí |
-| `#FFFFFF` | `#C8302B` | Botón principal, píldora, chip activo, aviso sin conexión | 5.37 | sí | sí |
+| `#4A1626` | `#FFE0F1` | Texto principal | 11.98 | sí | sí |
+| `#4A1626` | `#FFF0F7` | Texto en tarjetas, inputs, chips y píldora inactiva | 13.29 | sí | sí |
+| `#7A4D5A` | `#FFE0F1` | Texto secundario | 5.66 | sí | sí |
+| `#7A4D5A` | `#FFF0F7` | Texto secundario en tarjetas | 6.28 | sí | sí |
+| `#4A1626` al 70% | `#FFE0F1` | Secundario text-ink/70 | 5.15 | sí | sí |
+| `#4A1626` al 70% | `#FFF0F7` | text-ink/70 en tarjetas y vacíos | 5.49 | sí | sí |
+| `#B92A27` | `#FFE0F1` | Todo texto rojo: títulos, links, botón secundario | 5.02 | sí | sí |
+| `#B92A27` | `#FFF0F7` | Texto rojo en tarjetas, selects y nav inactiva | 5.57 | sí | sí |
+| `#FFFFFF` | `#C8302B` | Botón principal, nav activa, chip activo, aviso sin conexión | 5.37 | sí | sí |
 | `#FFFFFF` | `#9B2C2C` | Botón "Sí, borrar" | 7.53 | sí | sí |
 | `#FFFFFF` | `#E64741` | Blanco sobre rojo invitación (solo >= 24 px) | 3.93 | no | sí |
-| `#9B2C2C` | `#FFF0F7` | Errores | 6.83 | sí | sí |
-| `#9B2C2C` | `#FFF8FB` | Errores en tarjetas | 7.19 | sí | sí |
-| `#4A1626` | `#FFE0EF` | Misión card-rose | 11.97 | sí | sí |
-| `#4A1626` | `#FFE1DE` | Misión card-gold | 11.91 | sí | sí |
-| `#4A1626` | `#FCD9EE` | Misión card-mauve | 11.37 | sí | sí |
-| `#4A1626` | `#FFEAE4` | Misión card-peach | 12.65 | sí | sí |
+| `#9B2C2C` | `#FFE0F1` | Errores | 6.16 | sí | sí |
+| `#9B2C2C` | `#FFF0F7` | Errores en tarjetas | 6.83 | sí | sí |
+| `#4A1626` | `#FFF0F7` | Misión card-rose | 13.29 | sí | sí |
+| `#4A1626` | `#FFEEEA` | Misión card-gold | 13.02 | sí | sí |
+| `#4A1626` | `#FFF6FB` | Misión card-mauve | 13.83 | sí | sí |
+| `#4A1626` | `#FFF4EE` | Misión card-peach | 13.55 | sí | sí |
 | `#FFFFFF` | `#4A1626` | Visor, "Borrar", toast | 14.65 | sí | sí |
-| `#E64741` | `#FFF0F7` | NO usar en texto chico (control) | 3.57 | no | sí |
-| `#FEA3E0` | `#FFF0F7` | NO usar en texto (control) | 1.65 | no | no |
+| `#C8302B` | `#FFE0F1` | NO usar en texto chico: por eso existe accent-text (control) | 4.39 | no | sí |
+| `#E64741` | `#FFE0F1` | NO usar en texto chico (control) | 3.22 | no | sí |
+| `#FEA3E0` | `#FFE0F1` | NO usar en texto (control) | 1.49 | no | no |
 
 **Componentes e íconos** (AA 1.4.11: 3 para bordes de controles e íconos con significado)
 
 | Elemento | Fondo | Uso | Contraste | 3:1 |
 |---|---|---|---|---|
-| `#C8302B` | `#FFF0F7` | Borde de inputs, selects y botón secundario | 4.87 | sí |
-| `#C8302B` | `#FFE0EF` | Ícono de misión pendiente (card-rose) | 4.38 | sí |
-| `#C8302B` | `#FCD9EE` | Ícono de misión pendiente (card-mauve) | 4.16 | sí |
-| `#C8302B` | `#FEA3E0` al 70% | Barra de progreso: relleno sobre la pista | 3.43 | sí |
+| `#C8302B` | `#FFE0F1` | Borde de botón secundario, píldoras de nav, inputs (sobre la página) | 4.39 | sí |
+| `#C8302B` | `#FFF0F7` | Borde de inputs y selects sobre tarjeta | 4.87 | sí |
+| `#B92A27` | `#FFF0F7` | Ícono de misión pendiente (card-rose) | 5.57 | sí |
+| `#C8302B` | `#FEA3E0` al 70% sobre bg | Barra de progreso: relleno sobre la pista | 3.31 | sí |
+| `#B92A27` | `#FFEEEA` | Ícono de misión pendiente (card-gold, el más oscuro) | 5.45 | sí |
 | `#FEA3E0` | `#4A1626` | Corazón e ícono del toast sobre bordó | 8.04 | sí |
 | `#FEA3E0` | `#E64741` | HELLO / 50 (decorativo, aria-hidden) | 2.16 | no (decorativo) |
 
-`#E64741` y `#FEA3E0` nunca van en texto chico: los controles lo confirman
-(3,57 y 1,65 sobre el fondo). Los únicos "no" son decorativos (aria-hidden) o
+`#C8302B`, `#E64741` y `#FEA3E0` nunca van en texto chico: los controles lo
+confirman (4,39, 3,22 y 1,49 sobre el fondo #FFE0F1); el texto rojo usa
+`#B92A27`. Los únicos "no" son decorativos (aria-hidden) o
 texto blanco grande sobre el rojo de la invitación, que pasa como texto grande.
 
 ## Privacidad: cómo se controla hoy el acceso (solo informe, sin cambios)

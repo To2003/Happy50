@@ -13,7 +13,7 @@ export default function NotFound() {
       </p>
       <div className="flex flex-col gap-6">
         <div className="scallop-edge" />
-        <h1 className="text-balance font-display text-4xl uppercase leading-none text-accent">
+        <h1 className="text-balance font-display text-4xl uppercase leading-none text-accent-text">
           No encontramos esta página
         </h1>
         <p className="max-w-[32ch] text-lg leading-snug text-ink">

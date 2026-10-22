@@ -2,16 +2,17 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Icon, type IconName } from '@/components/Icon'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
-type Size = 'lg' | 'md' | 'sm'
+type Size = 'xl' | 'lg' | 'md' | 'sm'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-accent text-white shadow-soft',
-  secondary: 'border border-accent text-accent',
+  secondary: 'border border-accent text-accent-text',
   danger: 'bg-danger text-white',
   ghost: 'text-ink',
 }
 
 const SIZES: Record<Size, string> = {
+  xl: 'h-[72px] px-8 text-xl gap-3',
   lg: 'h-16 px-8 text-lg gap-3',
   md: 'h-14 px-6 text-base gap-2.5',
   sm: 'h-11 px-4 text-sm gap-2',
@@ -41,7 +42,7 @@ export function Button({
   children,
   ...rest
 }: ButtonProps) {
-  const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+  const iconSize = size === 'sm' ? 'h-4 w-4' : size === 'xl' ? 'h-6 w-6' : 'h-5 w-5'
   return (
     <button
       type={type}

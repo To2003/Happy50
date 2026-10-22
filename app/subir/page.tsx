@@ -8,7 +8,6 @@ import { runPipeline } from '@/lib/pipeline/runPipeline'
 import { addItem, hydrateQueue, removeItem, updateItem, type QueueItem } from '@/lib/uploadQueue'
 import { startUploadProcessor } from '@/lib/uploadProcessor'
 import { useUploadQueue } from '@/lib/useUploadQueue'
-import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
 import { Icon, type IconName } from '@/components/Icon'
@@ -34,13 +33,6 @@ const STATUS_LABEL: Record<QueueItem['status'], string> = {
   failed: 'Falló',
 }
 
-function nightCounterLabel(count: number | null): string {
-  if (count === null) return ''
-  if (count === 0) return 'Sé la primera persona en subir una foto'
-  if (count === 1) return 'Va 1 foto'
-  return `Van ${count} fotos`
-}
-
 function QueueThumb({ blob }: { blob: Blob }) {
   const [url, setUrl] = useState<string | null>(null)
 
@@ -58,8 +50,8 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: string }> = {
   waiting: { name: 'clock', className: 'text-ink/70' },
-  uploading: { name: 'loader', className: 'animate-spin text-accent' },
-  done: { name: 'check', className: 'text-accent' },
+  uploading: { name: 'loader', className: 'animate-spin text-accent-text' },
+  done: { name: 'check', className: 'text-accent-text' },
   failed: { name: 'alert', className: 'text-danger' },
 }
 
@@ -143,7 +135,6 @@ function SubirScreen() {
 
   const queue = useUploadQueue()
   const { toast, showToast } = useToast()
-  const photoCount = usePhotoCount()
 
   useEffect(() => {
     let active = true
@@ -293,34 +284,24 @@ function SubirScreen() {
       {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main id="contenido" className="flex min-h-screen flex-col gap-5 pb-12">
+      {/* 4rem = alto de TopNav: la pantalla entra justa y los botones se centran
+          en el espacio que sobra, sin vacío al pie. */}
+      <main id="contenido" className="flex min-h-[calc(100svh-4rem)] flex-col gap-5 pb-8">
         <InviteCard />
         <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-2 px-6">
-          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent">
+          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent-text [@media(min-height:740px)]:text-4xl">
             ¡Sumate a la fiesta!
           </h1>
-          <p className="animate-enter text-base leading-snug text-muted [animation-delay:60ms]">
-            Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
-          </p>
-          {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
-          {photoCount !== null && (
-            <p
-              key={photoCount}
-              className="animate-enter rounded-full bg-accent px-3 py-1 text-sm font-semibold tabular-nums text-white [animation-delay:120ms]"
-            >
-              {nightCounterLabel(photoCount)}
-            </p>
-          )}
         </div>
         <div className="scallop-edge" />
 
-        <div className="mx-auto flex w-full max-w-xl animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
+        <div className="mx-auto flex w-full max-w-xl flex-1 animate-enter flex-col justify-center gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
-              <Button size="lg" icon="camera" onClick={() => cameraInputRef.current?.click()}>
+              <Button size="xl" icon="camera" onClick={() => cameraInputRef.current?.click()}>
                 Sacar foto
               </Button>
-              <Button variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
+              <Button size="xl" variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
                 Elegir fotos
               </Button>
 
