@@ -284,22 +284,24 @@ function SubirScreen() {
       {toast}
 
       {/* Sin animate-page: el hero entra escalonado y eso ya es la entrada de la pantalla. */}
-      <main id="contenido" className="flex min-h-screen flex-col gap-5 pb-12">
+      {/* 4rem = alto de TopNav: la pantalla entra justa y los botones se centran
+          en el espacio que sobra, sin vacío al pie. */}
+      <main id="contenido" className="flex min-h-[calc(100svh-4rem)] flex-col gap-5 pb-8">
         <InviteCard />
         <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-2 px-6">
-          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent">
+          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent [@media(min-height:740px)]:text-4xl">
             ¡Sumate a la fiesta!
           </h1>
         </div>
         <div className="scallop-edge" />
 
-        <div className="mx-auto flex w-full max-w-xl animate-enter flex-col gap-6 px-6 [animation-delay:180ms]">
+        <div className="mx-auto flex w-full max-w-xl flex-1 animate-enter flex-col justify-center gap-6 px-6 [animation-delay:180ms]">
           {!hasStaged && (
             <div className="flex flex-col gap-4">
-              <Button size="lg" icon="camera" onClick={() => cameraInputRef.current?.click()}>
+              <Button size="xl" icon="camera" onClick={() => cameraInputRef.current?.click()}>
                 Sacar foto
               </Button>
-              <Button variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
+              <Button size="xl" variant="secondary" icon="images" onClick={() => galleryInputRef.current?.click()}>
                 Elegir fotos
               </Button>
 
