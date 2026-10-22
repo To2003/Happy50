@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: '50 años',
     start_url: '/',
     display: 'standalone',
-    background_color: '#FFF0F7',
-    theme_color: '#FFF0F7',
+    background_color: '#FFE0F1',
+    theme_color: '#FFE0F1',
     icons: [
       { src: '/icon/192', sizes: '192x192', type: 'image/png' },
       { src: '/icon/512', sizes: '512x512', type: 'image/png', purpose: 'any' },

@@ -50,8 +50,8 @@ function QueueThumb({ blob }: { blob: Blob }) {
 
 const STATUS_ICON: Record<QueueItem['status'], { name: IconName; className: string }> = {
   waiting: { name: 'clock', className: 'text-ink/70' },
-  uploading: { name: 'loader', className: 'animate-spin text-accent' },
-  done: { name: 'check', className: 'text-accent' },
+  uploading: { name: 'loader', className: 'animate-spin text-accent-text' },
+  done: { name: 'check', className: 'text-accent-text' },
   failed: { name: 'alert', className: 'text-danger' },
 }
 
@@ -289,7 +289,7 @@ function SubirScreen() {
       <main id="contenido" className="flex min-h-[calc(100svh-4rem)] flex-col gap-5 pb-8">
         <InviteCard />
         <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-2 px-6">
-          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent [@media(min-height:740px)]:text-4xl">
+          <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent-text [@media(min-height:740px)]:text-4xl">
             ¡Sumate a la fiesta!
           </h1>
         </div>

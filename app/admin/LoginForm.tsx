@@ -29,7 +29,7 @@ export function LoginForm() {
   return (
     <main id="contenido" className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-6">
       <div className="flex flex-col gap-6">
-        <h1 className="font-display text-4xl leading-none text-accent">Admin</h1>
+        <h1 className="font-display text-4xl leading-none text-accent-text">Admin</h1>
         <div className="scallop-edge" />
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

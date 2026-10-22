@@ -6,7 +6,7 @@ type Size = 'xl' | 'lg' | 'md' | 'sm'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-accent text-white shadow-soft',
-  secondary: 'border border-accent text-accent',
+  secondary: 'border border-accent text-accent-text',
   danger: 'bg-danger text-white',
   ghost: 'text-ink',
 }

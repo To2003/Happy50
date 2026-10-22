@@ -27,7 +27,7 @@ export function TopNav() {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={`press flex h-12 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-accent text-sm font-semibold transition-colors ${
-                  active ? 'bg-accent text-white' : 'bg-bg text-accent-text'
+                  active ? 'bg-accent text-white' : 'bg-surface text-accent-text'
                 }`}
               >
                 <Icon name={item.icon} className="h-5 w-5 shrink-0" />

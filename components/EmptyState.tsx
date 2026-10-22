@@ -5,7 +5,7 @@ import { Icon, type IconName } from '@/components/Icon'
 export function EmptyState({ icon, children }: { icon?: IconName; children: ReactNode }) {
   return (
     <div className="flex animate-enter flex-col items-center gap-4 rounded-2xl border border-blush bg-surface px-6 py-10 text-center">
-      {icon && <Icon name={icon} className="h-8 w-8 text-accent" />}
+      {icon && <Icon name={icon} className="h-8 w-8 text-accent-text" />}
       {children}
     </div>
   )

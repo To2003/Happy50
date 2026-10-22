@@ -124,7 +124,7 @@ export default function MisionesPage() {
         <PageHeader
           title="Misiones"
           aside={
-            <span className="font-display text-3xl tabular-nums leading-none text-accent">
+            <span className="font-display text-3xl tabular-nums leading-none text-accent-text">
               {doneCount}/{totalCount}
             </span>
           }
@@ -172,12 +172,12 @@ export default function MisionesPage() {
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     <span className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/90 to-transparent" />
-                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-accent">
+                    <span className="relative flex h-8 w-8 items-center justify-center self-end rounded-full bg-surface text-accent-text">
                       <Icon name="check" className="h-5 w-5" />
                     </span>
                   </>
                 ) : (
-                  <Icon name="target" className="h-6 w-6 text-accent" />
+                  <Icon name="target" className="h-6 w-6 text-accent-text" />
                 )}
                 <span
                   className={`relative text-balance font-display text-xl leading-tight ${
