@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getAdminSupabaseClient } from '@/lib/supabase/server'
 import { createAdminSession, destroyAdminSession, isAdminAuthenticated } from '@/lib/adminAuth'
+import { listRecentPhotosForReassign, type RecentPhotoForReassign } from '@/lib/adminPhotos'
 import type { Database } from '@/lib/database.types'
 
 type Milestone = Database['public']['Tables']['milestones']['Row']
@@ -70,25 +71,9 @@ export async function startMilestoneAction(milestoneId: string): Promise<ActionR
   })
 }
 
-interface RecentPhotoForReassign {
-  id: string
-  storage_path: string
-  thumb_path: string
-  taken_at: string
-  milestone_id: string | null
-  milestone_override_id: string | null
-}
-
 export async function getRecentPhotosForReassignAction(): Promise<RecentPhotoForReassign[]> {
   await requireAdmin()
-  const supabase = getAdminSupabaseClient()
-  const { data, error } = await supabase
-    .from('photos')
-    .select('id, storage_path, thumb_path, taken_at, milestone_id, milestone_override_id')
-    .order('taken_at', { ascending: false })
-    .limit(60)
-  if (error || !data) throw new Error('No se pudieron cargar las fotos.')
-  return data
+  return listRecentPhotosForReassign(getAdminSupabaseClient())
 }
 
 export async function reassignPhotoMilestoneAction(
