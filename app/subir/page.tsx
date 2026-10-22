@@ -8,7 +8,6 @@ import { runPipeline } from '@/lib/pipeline/runPipeline'
 import { addItem, hydrateQueue, removeItem, updateItem, type QueueItem } from '@/lib/uploadQueue'
 import { startUploadProcessor } from '@/lib/uploadProcessor'
 import { useUploadQueue } from '@/lib/useUploadQueue'
-import { usePhotoCount } from '@/lib/usePhotoCount'
 import { TopNav } from '@/components/TopNav'
 import { Confetti } from '@/components/Confetti'
 import { Icon, type IconName } from '@/components/Icon'
@@ -32,13 +31,6 @@ const STATUS_LABEL: Record<QueueItem['status'], string> = {
   uploading: 'Subiendo',
   done: 'Lista',
   failed: 'Falló',
-}
-
-function nightCounterLabel(count: number | null): string {
-  if (count === null) return ''
-  if (count === 0) return 'Sé la primera persona en subir una foto'
-  if (count === 1) return 'Va 1 foto'
-  return `Van ${count} fotos`
 }
 
 function QueueThumb({ blob }: { blob: Blob }) {
@@ -143,7 +135,6 @@ function SubirScreen() {
 
   const queue = useUploadQueue()
   const { toast, showToast } = useToast()
-  const photoCount = usePhotoCount()
 
   useEffect(() => {
     let active = true
@@ -299,18 +290,6 @@ function SubirScreen() {
           <h1 className="animate-enter text-balance font-display text-3xl uppercase leading-none text-accent">
             ¡Sumate a la fiesta!
           </h1>
-          <p className="animate-enter text-base leading-snug text-muted [animation-delay:60ms]">
-            Sacá fotos de la noche y subilas acá — se van sumando al álbum de todos.
-          </p>
-          {/* key por número: cada foto nueva del álbum hace entrar el contador de nuevo. */}
-          {photoCount !== null && (
-            <p
-              key={photoCount}
-              className="animate-enter rounded-full bg-accent px-3 py-1 text-sm font-semibold tabular-nums text-white [animation-delay:120ms]"
-            >
-              {nightCounterLabel(photoCount)}
-            </p>
-          )}
         </div>
         <div className="scallop-edge" />
 
