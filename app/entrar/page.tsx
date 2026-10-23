@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { Input } from '@/components/Field'
-import { createGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
+import { createGuest, findExistingGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
 import { onlyTableId } from '@/lib/tables'
 
 function EntrarForm() {
@@ -30,6 +30,14 @@ function EntrarForm() {
     let active = true
 
     async function resolve() {
+      // Ya es invitado (una sesión = un invitado): guardar de nuevo daría 409.
+      const existing = await findExistingGuest().catch(() => null)
+      if (!active) return
+      if (existing) {
+        router.replace('/subir')
+        return
+      }
+
       if (mesaCode) {
         const table = await findTableByCode(mesaCode)
         if (!active) return
@@ -64,7 +72,7 @@ function EntrarForm() {
     return () => {
       active = false
     }
-  }, [mesaCode, reloadKey])
+  }, [mesaCode, reloadKey, router])
 
   const canSubmit = name.trim().length > 0 && selectedTableId !== null && !loading
 
