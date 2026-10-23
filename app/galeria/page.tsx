@@ -43,10 +43,12 @@ const EMPTY_FILTERS: Filters = {
 
 function GridThumb({
   photo,
+  authorName,
   onOpen,
   stagger,
 }: {
   photo: Photo
+  authorName: string | null
   onOpen: (el: HTMLElement) => void
   stagger: StaggerProps
 }) {
@@ -54,6 +56,7 @@ function GridThumb({
   return (
     <button
       type="button"
+      data-photo-id={photo.id}
       onClick={(event) => onOpen(event.currentTarget)}
       style={stagger.style}
       onAnimationEnd={stagger.onAnimationEnd}
@@ -69,32 +72,70 @@ function GridThumb({
         decoding="async"
         className="relative h-full w-full object-cover"
       />
+      {authorName && (
+        // Degradé para que el nombre se lea sobre cualquier foto (clara u oscura).
+        <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-6 text-left text-sm font-semibold text-white">
+          {authorName}
+        </span>
+      )}
     </button>
   )
 }
 
+// Cuánto hay que arrastrar (fracción del ancho) para pasar de foto.
+const SWIPE_THRESHOLD = 0.18
+// Un gesto corto pero rápido también pasa de foto (px/ms).
+const SWIPE_VELOCITY = 0.5
+const SLIDE_MS = 180
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 function Viewer({
   photo,
+  prevPhoto,
+  nextPhoto,
+  authorName,
   guest,
+  onPrev,
+  onNext,
+  onHeartChange,
   onClose,
   onDeleted,
   onError,
 }: {
   photo: Photo
+  prevPhoto: Photo | null
+  nextPhoto: Photo | null
+  authorName: string | null
   guest: Guest | null
+  onPrev: () => void
+  onNext: () => void
+  onHeartChange: (photoId: string, delta: number) => void
   onClose: () => void
   onDeleted: (id: string) => void
   onError: (message: string) => void
 }) {
   useDialogBehavior(onClose)
   const [hearted, setHearted] = useState(false)
-  const [heartCount, setHeartCount] = useState(photo.hearts)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   // Solo cambia al dar corazón: así el pop no se dispara al abrir el visor.
   const [popKey, setPopKey] = useState(0)
 
+  // Desplazamiento horizontal de la foto mientras se arrastra o se anima.
+  const [offset, setOffset] = useState(0)
+  const [animating, setAnimating] = useState(false)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ id: number; x: number; y: number; t: number; axis: 'x' | 'y' | null } | null>(null)
+  const sliding = useRef(false)
+
+  // Cada foto arranca con su propio estado de corazón y sin confirmación abierta.
   useEffect(() => {
+    setHearted(false)
+    setConfirmingDelete(false)
+    setPopKey(0)
     if (!guest) return
     let active = true
     hasHearted(photo.id, guest.id).then((value) => {
@@ -105,6 +146,111 @@ function Viewer({
     }
   }, [photo.id, guest])
 
+  // Precarga las vecinas: con el wifi del salón, la siguiente ya está cuando se desliza.
+  useEffect(() => {
+    for (const neighbor of [prevPhoto, nextPhoto]) {
+      if (neighbor) new Image().src = storage.getPublicUrl(neighbor.storage_path)
+    }
+  }, [prevPhoto, nextPhoto])
+
+  // La foto sale hacia un lado y la nueva entra desde el otro.
+  const slideTo = useCallback(
+    (direction: 'prev' | 'next') => {
+      const target = direction === 'next' ? nextPhoto : prevPhoto
+      if (!target || sliding.current) return
+      const change = direction === 'next' ? onNext : onPrev
+      if (prefersReducedMotion()) {
+        setOffset(0)
+        change()
+        return
+      }
+      sliding.current = true
+      const width = stageRef.current?.clientWidth ?? window.innerWidth
+      const sign = direction === 'next' ? -1 : 1
+      setAnimating(true)
+      setOffset(sign * width)
+      window.setTimeout(() => {
+        change()
+        setAnimating(false)
+        setOffset(-sign * width)
+        // Doble frame: que el navegador pinte la foto nueva afuera antes de animarla hacia el centro.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            setAnimating(true)
+            setOffset(0)
+            window.setTimeout(() => {
+              setAnimating(false)
+              sliding.current = false
+            }, SLIDE_MS)
+          }),
+        )
+      }, SLIDE_MS)
+    },
+    [nextPhoto, prevPhoto, onNext, onPrev],
+  )
+
+  // Flechas del teclado en la compu.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (confirmingDelete) return
+      if (event.key === 'ArrowRight') slideTo('next')
+      if (event.key === 'ArrowLeft') slideTo('prev')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [slideTo, confirmingDelete])
+
+  function onPointerDown(event: React.PointerEvent) {
+    if (!event.isPrimary || sliding.current || confirmingDelete) return
+    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, t: performance.now(), axis: null }
+  }
+
+  function onPointerMove(event: React.PointerEvent) {
+    const d = drag.current
+    if (!d || d.id !== event.pointerId) return
+    const dx = event.clientX - d.x
+    const dy = event.clientY - d.y
+    // Recién después de unos px se decide si el gesto es horizontal (pasar foto) o no.
+    if (d.axis === null && Math.max(Math.abs(dx), Math.abs(dy)) > 8) {
+      d.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      if (d.axis === 'x') event.currentTarget.setPointerCapture(event.pointerId)
+    }
+    if (d.axis !== 'x') return
+    // En la primera o la última foto, el arrastre se resiste: se nota que no hay más.
+    const blocked = (dx < 0 && !nextPhoto) || (dx > 0 && !prevPhoto)
+    setOffset(blocked ? dx / 4 : dx)
+  }
+
+  function onPointerEnd(event: React.PointerEvent) {
+    const d = drag.current
+    if (!d || d.id !== event.pointerId) return
+    drag.current = null
+    if (d.axis !== 'x') return
+    const dx = event.clientX - d.x
+    const width = stageRef.current?.clientWidth ?? window.innerWidth
+    const velocity = Math.abs(dx) / Math.max(1, performance.now() - d.t)
+    const passed = Math.abs(dx) > width * SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY
+    if (passed && dx < 0 && nextPhoto) return slideTo('next')
+    if (passed && dx > 0 && prevPhoto) return slideTo('prev')
+    snapBack()
+  }
+
+  // El sistema cortó el gesto (scroll, notificación, otro dedo): la posición
+  // del evento no es confiable, así que no se calcula swipe.
+  function onPointerCancel(event: React.PointerEvent) {
+    const d = drag.current
+    if (!d || d.id !== event.pointerId) return
+    drag.current = null
+    if (d.axis === 'x') snapBack()
+  }
+
+  // No llegó (o se canceló): la foto vuelve a su lugar.
+  function snapBack() {
+    setAnimating(true)
+    setOffset(0)
+    window.setTimeout(() => setAnimating(false), SLIDE_MS)
+  }
+
   async function toggleHeart() {
     if (!guest || busy) return
     setBusy(true)
@@ -112,11 +258,11 @@ function Viewer({
       if (hearted) {
         await removeHeart(photo.id, guest.id)
         setHearted(false)
-        setHeartCount((count) => Math.max(0, count - 1))
+        onHeartChange(photo.id, -1)
       } else {
         await addHeart(photo.id, guest.id)
         setHearted(true)
-        setHeartCount((count) => count + 1)
+        onHeartChange(photo.id, 1)
         setPopKey((key) => key + 1)
       }
     } catch {
@@ -131,8 +277,9 @@ function Viewer({
     setBusy(true)
     try {
       await deleteOwnPhoto(photo.id)
+      // La página pasa a la foto vecina o cierra el visor si era la única.
+      setBusy(false)
       onDeleted(photo.id)
-      onClose()
     } catch (err) {
       setBusy(false)
       setConfirmingDelete(false)
@@ -143,11 +290,13 @@ function Viewer({
 
   const isOwn = guest !== null && guest.id === photo.guest_id
   const url = storage.getPublicUrl(photo.storage_path)
+  const heartCount = Math.max(0, photo.hearts)
 
   return (
     <div
       role="dialog"
       aria-modal="true"
+      aria-roledescription="carrusel"
       className="fixed inset-0 z-50 flex animate-page flex-col overscroll-contain bg-ink text-white"
     >
       <div className="flex items-center justify-between p-4">
@@ -171,9 +320,53 @@ function Viewer({
         )}
       </div>
 
-      <div className="flex flex-1 items-center justify-center overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={photo.caption ?? ''} className="vt-foto max-h-full max-w-full object-contain" />
+      <div
+        ref={stageRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerCancel}
+        // pan-y y pinch-zoom quedan para el navegador; el arrastre horizontal lo maneja el visor.
+        className="relative flex flex-1 touch-pan-y touch-pinch-zoom select-none items-center justify-center overflow-hidden"
+      >
+        <div
+          className="flex h-full w-full items-center justify-center"
+          style={{
+            transform: `translateX(${offset}px)`,
+            transition: animating ? `transform ${SLIDE_MS}ms ease-out` : 'none',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={photo.id}
+            src={url}
+            alt={photo.caption ?? ''}
+            draggable={false}
+            className="vt-foto max-h-full max-w-full object-contain"
+          />
+        </div>
+
+        {/* Flechas para la compu; en el celular se desliza. */}
+        {prevPhoto && (
+          <button
+            type="button"
+            onClick={() => slideTo('prev')}
+            aria-label="Foto anterior"
+            className="absolute left-3 top-1/2 hidden h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 sm:flex"
+          >
+            <Icon name="chevron-left" className="h-8 w-8" />
+          </button>
+        )}
+        {nextPhoto && (
+          <button
+            type="button"
+            onClick={() => slideTo('next')}
+            aria-label="Foto siguiente"
+            className="absolute right-3 top-1/2 hidden h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 sm:flex"
+          >
+            <Icon name="chevron-right" className="h-8 w-8" />
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-4 p-4">
@@ -190,7 +383,10 @@ function Viewer({
           </span>
           <span className="tabular-nums">{heartCount}</span>
         </button>
-        {photo.caption && <p className="flex-1 truncate text-white/85">{photo.caption}</p>}
+        <div className="min-w-0 flex-1">
+          {authorName && <p className="truncate text-lg font-semibold">{authorName}</p>}
+          {photo.caption && <p className="truncate text-white/85">{photo.caption}</p>}
+        </div>
       </div>
 
       {confirmingDelete && (
@@ -233,7 +429,10 @@ export default function GaleriaPage() {
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [viewerPhoto, setViewerPhoto] = useState<Photo | null>(null)
+  const [viewerId, setViewerId] = useState<string | null>(null)
+  // guest_id → nombre de quien subió la foto. Se va llenando con cada tanda.
+  const [authorNames, setAuthorNames] = useState<Record<string, string>>({})
+  const knownAuthorIds = useRef(new Set<string>())
   // Miniatura de la que salió el visor: ahí vuelve la transición al cerrar.
   const openedFrom = useRef<HTMLElement | null>(null)
   const { toast, showToast } = useToast()
@@ -295,6 +494,28 @@ export default function GaleriaPage() {
         setPhotos((current) => (offset === 0 ? data : [...current, ...data]))
         setHasMore(data.length === PAGE_SIZE)
         setLoadError(false)
+
+        // Nombres de los autores que todavía no tenemos, DESPUÉS de mostrar las
+        // fotos y sin esperar. guests es de lectura pública (guests_select_public).
+        // Si falla, la galería se ve igual sin nombres, y la próxima tanda reintenta.
+        const missingIds = [...new Set(data.map((photo) => photo.guest_id))].filter(
+          (id): id is string => id !== null && !knownAuthorIds.current.has(id),
+        )
+        if (missingIds.length > 0) {
+          for (const id of missingIds) knownAuthorIds.current.add(id)
+          const forget = () => missingIds.forEach((id) => knownAuthorIds.current.delete(id))
+          void supabase
+            .from('guests')
+            .select('id, name')
+            .in('id', missingIds)
+            .then(({ data: authors }) => {
+              if (!authors) return forget()
+              setAuthorNames((current) => ({
+                ...current,
+                ...Object.fromEntries(authors.map((author) => [author.id, author.name])),
+              }))
+            }, forget)
+        }
       } else {
         // Antes se tragaba el error y se veía "Todavía no hay fotos", que no era cierto.
         setLoadError(true)
@@ -327,7 +548,41 @@ export default function GaleriaPage() {
     return () => observer.disconnect()
   }, [hasMore, photos.length, loadPage])
 
+  const viewerIndex = viewerId ? photos.findIndex((photo) => photo.id === viewerId) : -1
+  const viewerPhoto = viewerIndex >= 0 ? photos[viewerIndex] : null
+
+  // Pasando fotos en el visor se puede llegar al final de lo cargado: pedimos la tanda siguiente antes.
+  // Con loadError no se reintenta solo: el reintento es el botón de la grilla.
+  useEffect(() => {
+    if (viewerIndex >= 0 && viewerIndex >= photos.length - 3 && hasMore && !loadError && !loadingRef.current) {
+      void loadPage(photos.length)
+    }
+  }, [viewerIndex, photos.length, hasMore, loadError, loadPage])
+
+  function closeViewer() {
+    // Vuelve a la miniatura de la foto que se está viendo ahora, no a la que se abrió.
+    const current = viewerId
+      ? document.querySelector<HTMLElement>(`[data-photo-id="${viewerId}"]`)
+      : null
+    if (current && current !== openedFrom.current) current.scrollIntoView({ block: 'center' })
+    morphClose(current ?? openedFrom.current, () => setViewerId(null))
+  }
+
+  function handleHeartChange(photoId: string, delta: number) {
+    setPhotos((current) =>
+      current.map((photo) => (photo.id === photoId ? { ...photo, hearts: photo.hearts + delta } : photo)),
+    )
+  }
+
   function handleDeleted(id: string) {
+    if (viewerId === id) {
+      // Siguiente, o anterior si era la última. Sin transición: es un cambio de
+      // estado, no queda ningún view-transition-name puesto.
+      const index = photos.findIndex((photo) => photo.id === id)
+      const neighbor = photos[index + 1] ?? photos[index - 1] ?? null
+      // Era la única: se cierra directo (su miniatura está por desaparecer, no hay a dónde volver).
+      setViewerId(neighbor?.id ?? null)
+    }
     setPhotos((current) => current.filter((photo) => photo.id !== id))
     showToast('Listo, la foto se borró')
   }
@@ -385,9 +640,10 @@ export default function GaleriaPage() {
           <GridThumb
             key={photo.id}
             photo={photo}
+            authorName={photo.guest_id ? authorNames[photo.guest_id] ?? null : null}
             onOpen={(el) => {
               openedFrom.current = el
-              void morphOpen(el, storage.getPublicUrl(photo.storage_path), () => setViewerPhoto(photo))
+              void morphOpen(el, storage.getPublicUrl(photo.storage_path), () => setViewerId(photo.id))
             }}
             stagger={staggerFor(photo.id)}
           />
@@ -419,8 +675,14 @@ export default function GaleriaPage() {
       {viewerPhoto && (
         <Viewer
           photo={viewerPhoto}
+          prevPhoto={photos[viewerIndex - 1] ?? null}
+          nextPhoto={photos[viewerIndex + 1] ?? null}
+          authorName={viewerPhoto.guest_id ? authorNames[viewerPhoto.guest_id] ?? null : null}
           guest={guest}
-          onClose={() => morphClose(openedFrom.current, () => setViewerPhoto(null))}
+          onPrev={() => setViewerId(photos[viewerIndex - 1]?.id ?? viewerId)}
+          onNext={() => setViewerId(photos[viewerIndex + 1]?.id ?? viewerId)}
+          onHeartChange={handleHeartChange}
+          onClose={closeViewer}
           onDeleted={handleDeleted}
           onError={(message) => showToast(message, 'error')}
         />

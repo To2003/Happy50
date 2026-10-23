@@ -33,6 +33,8 @@ const PATHS = {
     </>
   ),
   check: <path d="M20 6 9 17l-5-5" />,
+  'chevron-left': <path d="m15 18-6-6 6-6" />,
+  'chevron-right': <path d="m9 18 6-6-6-6" />,
   loader: <path d="M21 12a9 9 0 1 1-6.219-8.56" />,
   alert: (
     <>
