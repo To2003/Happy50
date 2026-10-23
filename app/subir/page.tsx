@@ -342,8 +342,8 @@ function SubirScreen() {
                 type="text"
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
-                placeholder="Epígrafe (opcional)"
-                aria-label="Epígrafe (opcional)"
+                placeholder="Mensaje (opcional)"
+                aria-label="Mensaje (opcional)"
                 autoComplete="off"
               />
 
