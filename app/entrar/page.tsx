@@ -6,6 +6,7 @@ import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { Input } from '@/components/Field'
 import { createGuest, findTableByCode, listTables, type PartyTable } from '@/lib/guest'
+import { onlyTableId } from '@/lib/tables'
 
 function EntrarForm() {
   const router = useRouter()
@@ -19,6 +20,11 @@ function EntrarForm() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Error al cargar las mesas y "Reintentar": guests.table_id es obligatorio,
+  // así que sin mesas no se puede entrar.
+  const [tablesError, setTablesError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [reloading, setReloading] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -40,10 +46,16 @@ function EntrarForm() {
         const allTables = await listTables()
         if (!active) return
         setTables(allTables)
-      } catch {
-        // Si falla la lista, dejamos que intente enviar igual — ahí se ve el error real.
+        setTablesError(null)
+        const onlyId = onlyTableId(allTables)
+        if (onlyId) setSelectedTableId(onlyId)
+      } catch (err) {
+        if (active) setTablesError(err instanceof Error ? err.message : 'No pudimos cargar las mesas, probá de nuevo.')
       } finally {
-        if (active) setResolving(false)
+        if (active) {
+          setResolving(false)
+          setReloading(false)
+        }
       }
     }
 
@@ -52,7 +64,7 @@ function EntrarForm() {
     return () => {
       active = false
     }
-  }, [mesaCode])
+  }, [mesaCode, reloadKey])
 
   const canSubmit = name.trim().length > 0 && selectedTableId !== null && !loading
 
@@ -98,10 +110,29 @@ function EntrarForm() {
           className="text-lg"
         />
 
-        {!tableFromQr && (
+        {/* Con una sola mesa ya quedó elegida: solo nombre y entrar. */}
+        {!tableFromQr && !(tables.length === 1 && !tablesError) && (
           <div className="flex flex-col gap-3">
             <p className="font-display text-2xl uppercase leading-none text-accent-text">¿En qué mesa estás?</p>
-            {mesaCode && (
+            {(tablesError || tables.length === 0) && (
+              <div className="flex flex-col items-start gap-3">
+                <p role="alert" className="text-base text-danger">
+                  {tablesError ?? 'Todavía no hay mesas cargadas. Avisale a quien organiza y probá de nuevo.'}
+                </p>
+                <Button
+                  variant="secondary"
+                  icon="retry"
+                  loading={reloading}
+                  onClick={() => {
+                    setReloading(true)
+                    setReloadKey((k) => k + 1)
+                  }}
+                >
+                  Reintentar
+                </Button>
+              </div>
+            )}
+            {mesaCode && tables.length > 0 && (
               <p className="text-base text-ink/70">
                 No encontramos esa mesa, elegí la tuya de la lista.
               </p>
