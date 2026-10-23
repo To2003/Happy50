@@ -362,19 +362,22 @@ export default function GaleriaPage() {
           ))}
         </Select>
 
-        <Select
-          aria-label="Filtrar por mesa"
-          value={filters.tableId ?? ''}
-          onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
-          className="flex-1 basis-40"
-        >
-          <option value="">Todas las mesas</option>
-          {tables.map((table) => (
-            <option key={table.id} value={table.id}>
-              {table.label ?? `Mesa ${table.code}`}
-            </option>
-          ))}
-        </Select>
+        {/* Con una sola mesa (un QR para toda la fiesta) filtrar por mesa no tiene sentido. */}
+        {tables.length > 1 && (
+          <Select
+            aria-label="Filtrar por mesa"
+            value={filters.tableId ?? ''}
+            onChange={(event) => setFilters((f) => ({ ...f, tableId: event.target.value || null }))}
+            className="flex-1 basis-40"
+          >
+            <option value="">Todas las mesas</option>
+            {tables.map((table) => (
+              <option key={table.id} value={table.id}>
+                {table.label ?? `Mesa ${table.code}`}
+              </option>
+            ))}
+          </Select>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-5">
