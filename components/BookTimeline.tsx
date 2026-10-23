@@ -259,7 +259,8 @@ export function BookTimeline({ tableFilter }: { tableFilter?: TableFilter }) {
         )
       })}
 
-      {!tableFilter && tables.length > 0 && (
+      {/* Con una sola mesa, su book es igual al de toda la noche: no se ofrece. */}
+      {!tableFilter && tables.length > 1 && (
         <section className="flex flex-col gap-3 px-4">
           <h2 className="text-balance font-display text-3xl uppercase leading-none text-accent-text">El book de tu mesa</h2>
           <div className="flex flex-wrap gap-2">
