@@ -232,7 +232,20 @@ function Viewer({
     const passed = Math.abs(dx) > width * SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY
     if (passed && dx < 0 && nextPhoto) return slideTo('next')
     if (passed && dx > 0 && prevPhoto) return slideTo('prev')
-    // No llegó: la foto vuelve a su lugar.
+    snapBack()
+  }
+
+  // El sistema cortó el gesto (scroll, notificación, otro dedo): la posición
+  // del evento no es confiable, así que no se calcula swipe.
+  function onPointerCancel(event: React.PointerEvent) {
+    const d = drag.current
+    if (!d || d.id !== event.pointerId) return
+    drag.current = null
+    if (d.axis === 'x') snapBack()
+  }
+
+  // No llegó (o se canceló): la foto vuelve a su lugar.
+  function snapBack() {
     setAnimating(true)
     setOffset(0)
     window.setTimeout(() => setAnimating(false), SLIDE_MS)
@@ -264,8 +277,9 @@ function Viewer({
     setBusy(true)
     try {
       await deleteOwnPhoto(photo.id)
+      // La página pasa a la foto vecina o cierra el visor si era la única.
+      setBusy(false)
       onDeleted(photo.id)
-      onClose()
     } catch (err) {
       setBusy(false)
       setConfirmingDelete(false)
@@ -311,7 +325,7 @@ function Viewer({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
+        onPointerCancel={onPointerCancel}
         // pan-y y pinch-zoom quedan para el navegador; el arrastre horizontal lo maneja el visor.
         className="relative flex flex-1 touch-pan-y touch-pinch-zoom select-none items-center justify-center overflow-hidden"
       >
@@ -477,26 +491,31 @@ export default function GaleriaPage() {
       const { data, error } = await query
 
       if (!error && data) {
-        // Nombres de los autores que todavía no tenemos. guests es de lectura
-        // pública (policy guests_select_public). Si falla, la galería se ve igual,
-        // solo sin nombres: no vale la pena mostrar un error por esto.
+        setPhotos((current) => (offset === 0 ? data : [...current, ...data]))
+        setHasMore(data.length === PAGE_SIZE)
+        setLoadError(false)
+
+        // Nombres de los autores que todavía no tenemos, DESPUÉS de mostrar las
+        // fotos y sin esperar. guests es de lectura pública (guests_select_public).
+        // Si falla, la galería se ve igual sin nombres, y la próxima tanda reintenta.
         const missingIds = [...new Set(data.map((photo) => photo.guest_id))].filter(
           (id): id is string => id !== null && !knownAuthorIds.current.has(id),
         )
         if (missingIds.length > 0) {
-          const { data: authors } = await supabase.from('guests').select('id, name').in('id', missingIds)
-          if (authors) {
-            for (const author of authors) knownAuthorIds.current.add(author.id)
-            setAuthorNames((current) => ({
-              ...current,
-              ...Object.fromEntries(authors.map((author) => [author.id, author.name])),
-            }))
-          }
+          for (const id of missingIds) knownAuthorIds.current.add(id)
+          const forget = () => missingIds.forEach((id) => knownAuthorIds.current.delete(id))
+          void supabase
+            .from('guests')
+            .select('id, name')
+            .in('id', missingIds)
+            .then(({ data: authors }) => {
+              if (!authors) return forget()
+              setAuthorNames((current) => ({
+                ...current,
+                ...Object.fromEntries(authors.map((author) => [author.id, author.name])),
+              }))
+            }, forget)
         }
-
-        setPhotos((current) => (offset === 0 ? data : [...current, ...data]))
-        setHasMore(data.length === PAGE_SIZE)
-        setLoadError(false)
       } else {
         // Antes se tragaba el error y se veía "Todavía no hay fotos", que no era cierto.
         setLoadError(true)
@@ -533,11 +552,12 @@ export default function GaleriaPage() {
   const viewerPhoto = viewerIndex >= 0 ? photos[viewerIndex] : null
 
   // Pasando fotos en el visor se puede llegar al final de lo cargado: pedimos la tanda siguiente antes.
+  // Con loadError no se reintenta solo: el reintento es el botón de la grilla.
   useEffect(() => {
-    if (viewerIndex >= 0 && viewerIndex >= photos.length - 3 && hasMore && !loadingRef.current) {
+    if (viewerIndex >= 0 && viewerIndex >= photos.length - 3 && hasMore && !loadError && !loadingRef.current) {
       void loadPage(photos.length)
     }
-  }, [viewerIndex, photos.length, hasMore, loadPage])
+  }, [viewerIndex, photos.length, hasMore, loadError, loadPage])
 
   function closeViewer() {
     // Vuelve a la miniatura de la foto que se está viendo ahora, no a la que se abrió.
@@ -555,6 +575,14 @@ export default function GaleriaPage() {
   }
 
   function handleDeleted(id: string) {
+    if (viewerId === id) {
+      // Siguiente, o anterior si era la última. Sin transición: es un cambio de
+      // estado, no queda ningún view-transition-name puesto.
+      const index = photos.findIndex((photo) => photo.id === id)
+      const neighbor = photos[index + 1] ?? photos[index - 1] ?? null
+      // Era la única: se cierra directo (su miniatura está por desaparecer, no hay a dónde volver).
+      setViewerId(neighbor?.id ?? null)
+    }
     setPhotos((current) => current.filter((photo) => photo.id !== id))
     showToast('Listo, la foto se borró')
   }
